@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXORA AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090d18;color:white;font-family:Arial,sans-serif;height:100dvh;display:flex;flex-direction:column}
+header{padding:18px;text-align:center;background:#111827;border-bottom:1px solid #263248}
+header h2{margin:0;color:#8b9cff}
+header p{margin:7px 0 0;color:#9ca3af;font-size:13px}
+#chat{flex:1;overflow-y:auto;padding:18px}
+.message{max-width:85%;padding:13px 16px;margin:12px 0;border-radius:16px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.user{background:#4658c9;margin-left:auto;border-bottom-right-radius:4px}
+.bot{background:#192337;margin-right:auto;border:1px solid #29364d;border-bottom-left-radius:4px}
+#zone{display:flex;padding:12px;gap:10px;background:#111827}
+textarea{flex:1;resize:none;border:1px solid #34415a;border-radius:14px;background:#202b3d;color:white;padding:13px;outline:none;font-size:15px;min-height:48px}
+button{border:0;border-radius:14px;background:#6478ff;color:white;padding:0 18px;font-weight:bold;font-size:20px}
+button:disabled{opacity:.5}
+</style>
+</head>
+<body>
+<header>
+<h2>💎 NEXORA AI</h2>
+<p>Ton assistant intelligent</p>
+</header>
+<div id="chat">
+<div class="message bot">Bonjour ! Je suis NEXORA AI. Comment puis-je t'aider aujourd'hui ?</div>
+</div>
+<div id="zone">
+<textarea id="question" placeholder="Écris ton message..."></textarea>
+<button id="bouton" onclick="envoyer()">➤</button>
+</div>
+<script>
+async function envoyer(){
+let input=document.getElementById("question");
+let chat=document.getElementById("chat");
+let bouton=document.getElementById("bouton");
+let texte=input.value.trim();
+if(!texte)return;
+let utilisateur=document.createElement("div");
+utilisateur.className="message user";
+utilisateur.textContent=texte;
+chat.appendChild(utilisateur);
+input.value="";
+let attente=document.createElement("div");
+attente.className="message bot";
+attente.textContent="NEXORA réfléchit...";
+chat.appendChild(attente);
+bouton.disabled=true;
+chat.scrollTop=chat.scrollHeight;
+try{
+let resultat=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:texte})});
+if(!resultat.ok)throw new Error("Serveur indisponible");
+let donnees=await resultat.json();
+attente.textContent=donnees.response||"Aucune réponse reçue.";
+}catch(erreur){
+attente.textContent="Erreur de connexion. Réessaie.";
+}
+bouton.disabled=false;
+chat.scrollTop=chat.scrollHeight;
+}
+document.getElementById("question").addEventListener("keydown",function(e){
+if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();envoyer();}
+});
+</script>
+</body>
+</html>
