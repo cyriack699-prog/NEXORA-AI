@@ -5,3 +5,4 @@ flask-sqlalchemy
 pypdf
 openpyxl
 requests
+python-dotenv
