@@ -1,7 +1,7 @@
 import time
 import uuid
-import json
 from pathlib import Path
+from urllib.parse import urljoin, quote
 
 import requests
 
@@ -27,144 +27,82 @@ def generer_video(prompt, duree=5, format_video="paysage"):
     )
 
     donnees = {
-        "data": [
-            prompt,
-            "worst quality, inconsistent motion, blurry, jittery, distorted",
-            None,
-            None,
-            hauteur,
-            largeur,
-            "text-to-video",
-            duree,
-            9,
-            42,
-            True,
-            3.0,
-            False
-        ]
+        "prompt": prompt,
+        "negative_prompt": "worst quality, inconsistent motion, blurry, jittery, distorted",
+        "height_ui": hauteur,
+        "width_ui": largeur,
+        "mode": "text-to-video",
+        "duration_ui": duree,
+        "ui_frames_to_use": 9,
+        "seed_ui": 42,
+        "randomize_seed": True,
+        "ui_guidance_scale": 3.0,
+        "improve_texture_flag": True
     }
 
     try:
-        session = requests.Session()
-        creation = None
-        derniere_erreur = None
+        with requests.Session() as session:
+            reponse = session.post(
+                f"{API_URL}/run/text_to_video",
+                json=donnees,
+                timeout=(30, 900)
+            )
 
-        for tentative in range(3):
+            if not reponse.ok:
+                return {
+                    "error": f"Erreur API LTX ({reponse.status_code}) : {reponse.text[:500]}"
+                }
+
             try:
-                creation = session.post(
-                    f"{API_URL}/gradio_api/call/text_to_video",
-                    json=donnees,
-                    timeout=60
-                )
-                creation.raise_for_status()
-                break
-            except requests.RequestException as erreur:
-                derniere_erreur = erreur
-                if tentative < 2:
-                    time.sleep(3)
+                resultat = reponse.json()
+            except ValueError:
+                return {"error": "LTX a renvoyé une réponse JSON invalide."}
 
-        if creation is None:
+            if resultat.get("error"):
+                return {"error": f"Erreur LTX : {resultat['error']}"}
+
+            sortie = resultat.get("output", resultat)
+
+            if isinstance(sortie, list) and sortie:
+                sortie = sortie[0]
+
+            if not isinstance(sortie, dict):
+                return {"error": "Format de réponse vidéo LTX inattendu."}
+
+            video_data = sortie.get("video")
+
+            if not isinstance(video_data, dict):
+                return {"error": "LTX n'a retourné aucun fichier vidéo."}
+
+            url = video_data.get("url")
+            chemin = video_data.get("path")
+
+            if url:
+                url = urljoin(API_URL + "/", url)
+            elif chemin:
+                url = f"{API_URL}/gradio_api/file={quote(chemin, safe='/')}"
+            else:
+                return {"error": "Le lien du fichier vidéo est absent."}
+
+            telechargement = session.get(
+                url,
+                timeout=(30, 300)
+            )
+            telechargement.raise_for_status()
+
+            if not telechargement.content:
+                return {"error": "Le fichier vidéo téléchargé est vide."}
+
+            VIDEO_DIR.mkdir(parents=True, exist_ok=True)
+
+            nom = f"nexora_{uuid.uuid4().hex[:12]}.mp4"
+            fichier = VIDEO_DIR / nom
+            fichier.write_bytes(telechargement.content)
+
             return {
-                "error": f"Connexion LTX impossible après 3 tentatives : {derniere_erreur}"
+                "video": f"/static/videos/{nom}",
+                "message": "Vidéo créée avec succès avec LTX !"
             }
-
-        event_id = creation.json().get("event_id")
-
-        if not event_id:
-            return {"error": "LTX n'a pas retourné d'identifiant de génération."}
-
-        resultat = None
-        url_evenement = f"{API_URL}/gradio_api/call/text_to_video/{event_id}"
-
-        # Reconnexion au même événement : aucune nouvelle génération.
-        for tentative in range(8):
-            try:
-                evenement = None
-
-                with session.get(
-                    url_evenement,
-                    stream=True,
-                    headers={"Accept": "text/event-stream"},
-                    timeout=(30, 120)
-                ) as response:
-                    response.raise_for_status()
-
-                    for ligne in response.iter_lines(decode_unicode=True):
-                        if not ligne:
-                            continue
-
-                        if isinstance(ligne, bytes):
-                            ligne = ligne.decode("utf-8", errors="replace")
-
-                        if ligne.startswith("event:"):
-                            evenement = ligne[6:].strip()
-
-                        elif ligne.startswith("data:"):
-                            contenu = ligne[5:].strip()
-
-                            if evenement == "error":
-                                return {"error": f"Erreur LTX : {contenu[:500]}"}
-
-                            if evenement == "complete":
-                                resultat = json.loads(contenu)
-                                break
-
-                if resultat is not None:
-                    break
-
-                if tentative < 7:
-                    time.sleep(5)
-
-            except requests.RequestException:
-                if tentative == 7:
-                    raise
-                time.sleep(5)
-
-        if resultat is None:
-            return {
-                "error": "La connexion avec LTX a été interrompue. Réessaie sans relancer immédiatement plusieurs générations."
-            }
-
-        if not isinstance(resultat, list) or not resultat:
-            return {"error": "LTX n'a pas terminé correctement la génération."}
-
-        video_data = resultat[0].get("video") if isinstance(resultat[0], dict) else None
-
-        if not video_data:
-            return {"error": "LTX n'a retourné aucun fichier vidéo."}
-
-        url = video_data.get("url")
-
-        if not url:
-            return {"error": "Le lien de téléchargement de la vidéo est absent."}
-
-        telechargement = None
-
-        for tentative in range(3):
-            try:
-                telechargement = session.get(url, timeout=(30, 180))
-                telechargement.raise_for_status()
-
-                if not telechargement.content:
-                    raise ValueError("Le fichier vidéo téléchargé est vide.")
-
-                break
-
-            except requests.RequestException:
-                if tentative == 2:
-                    raise
-                time.sleep(3)
-
-        VIDEO_DIR.mkdir(parents=True, exist_ok=True)
-
-        nom = f"nexora_{uuid.uuid4().hex[:12]}.mp4"
-        chemin = VIDEO_DIR / nom
-        chemin.write_bytes(telechargement.content)
-
-        return {
-            "video": f"/static/videos/{nom}",
-            "message": "Vidéo créée avec succès avec LTX !"
-        }
 
     except requests.Timeout:
         return {"error": "LTX met trop de temps à répondre. Réessaie plus tard."}
