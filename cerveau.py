@@ -182,7 +182,43 @@ def repondre(message, historique=None, parametres=None):
             return "Erreur : le modèle IA demandé est introuvable."
 
         if reponse.status_code == 429:
-            return "Limite de requêtes atteinte. Réessaie plus tard."
+            polli_key = os.getenv("POLLINATIONS_API_KEY")
+
+            if not polli_key:
+                return "Cloudflare est limité et Pollinations n'est pas configuré."
+
+            try:
+                secours = requests.post(
+                    "https://gen.pollinations.ai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {polli_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "openai/gpt-5.4-nano",
+                        "messages": messages,
+                        "max_tokens": limites.get(longueur, 1200)
+                    },
+                    timeout=90
+                )
+
+                secours.raise_for_status()
+                resultat_polli = secours.json()
+                choix = resultat_polli.get("choices", [])
+                texte = (
+                    choix[0].get("message", {}).get("content")
+                    if choix else None
+                )
+
+                if isinstance(texte, str) and texte.strip():
+                    return texte.strip()
+
+                return "Pollinations n'a pas fourni de réponse."
+
+            except requests.RequestException:
+                return "Cloudflare est limité et Pollinations est momentanément indisponible."
+            except (ValueError, KeyError, IndexError, TypeError):
+                return "Erreur lors de la réception de la réponse Pollinations."
 
         try:
             resultat = reponse.json()
