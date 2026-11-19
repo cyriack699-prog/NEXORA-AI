@@ -3,80 +3,111 @@ import uuid
 import base64
 import requests
 from pathlib import Path
+from urllib.parse import quote
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
-MODEL = "@cf/black-forest-labs/flux-2-dev"
+MODEL_POLLI = "tongyi-mai/z-image-turbo"
+MODEL_CLOUDFLARE = "@cf/black-forest-labs/flux-2-dev"
 
-def generer_image(prompt):
+
+def sauvegarder_image(contenu):
+    if contenu.startswith(b"\x89PNG\r\n\x1a\n"):
+        extension = "png"
+    elif contenu.startswith(b"\xff\xd8\xff"):
+        extension = "jpg"
+    else:
+        return None
+
+    dossier = Path(__file__).parent / "static" / "images"
+    dossier.mkdir(parents=True, exist_ok=True)
+
+    nom = str(uuid.uuid4()) + "." + extension
+    (dossier / nom).write_bytes(contenu)
+    return "/static/images/" + nom
+
+
+def generer_pollinations(prompt):
+    cle = os.getenv("POLLINATIONS_API_KEY")
+    if not cle:
+        raise Exception("Clé Pollinations absente sur Render.")
+
+    url = "https://gen.pollinations.ai/image/" + quote(prompt[:3000], safe="")
+
+    r = requests.get(
+        url,
+        headers={"Authorization": f"Bearer {cle}"},
+        params={
+            "model": MODEL_POLLI,
+            "width": 1024,
+            "height": 1024
+        },
+        timeout=300
+    )
+
+    if not r.ok:
+        raise Exception(f"Pollinations HTTP {r.status_code}: {r.text[:300]}")
+
+    resultat = sauvegarder_image(r.content)
+    if not resultat:
+        raise Exception("Pollinations n'a pas renvoyé une image PNG ou JPEG.")
+
+    return resultat
+
+
+def generer_cloudflare(prompt):
     account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
     token = os.getenv("CLOUDFLARE_API_TOKEN")
 
     if not account or not token:
-        return "Erreur image : configuration Cloudflare manquante."
-
-    if not isinstance(prompt, str) or not prompt.strip():
-        return "Erreur image : décris l'image souhaitée."
+        raise Exception("Configuration Cloudflare manquante.")
 
     url = (
         f"https://api.cloudflare.com/client/v4/accounts/{account}"
-        f"/ai/run/{MODEL}"
+        f"/ai/run/{MODEL_CLOUDFLARE}"
     )
 
-    donnees = {
-        "prompt": prompt.strip()[:3000],
-        "steps": "25",
-        "width": "1024",
-        "height": "1024",
-        "guidance": "4"
-    }
+    r = requests.post(
+        url,
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "prompt": prompt[:3000],
+            "steps": 25,
+            "width": 1024,
+            "height": 1024,
+            "guidance": 4
+        },
+        timeout=300
+    )
+
+    if not r.ok:
+        raise Exception(f"Cloudflare HTTP {r.status_code}: {r.text[:300]}")
+
+    image_base64 = r.json().get("result", {}).get("image")
+    if not image_base64:
+        raise Exception("Aucune image reçue de Cloudflare.")
+
+    contenu = base64.b64decode(image_base64)
+    resultat = sauvegarder_image(contenu)
+
+    if not resultat:
+        raise Exception("Format Cloudflare non reconnu.")
+
+    return resultat
+
+
+def generer_image(prompt):
+    if not isinstance(prompt, str) or not prompt.strip():
+        return "Erreur image : décris l'image souhaitée."
 
     try:
-        r = requests.post(
-            url,
-            headers={"Authorization": f"Bearer {token}"},
-            data=donnees,
-            timeout=300
-        )
-
-        if not r.ok:
-            try:
-                erreur = r.json()
-                details = erreur.get("errors", [])
-                return f"Erreur FLUX.2 HTTP {r.status_code} : {str(details)[:500]}"
-            except ValueError:
-                return f"Erreur FLUX.2 HTTP {r.status_code}."
-
-        resultat = r.json()
-        image_base64 = resultat.get("result", {}).get("image")
-
-        if not image_base64:
-            return "Erreur image : aucune image reçue de FLUX.2."
-
-        contenu = base64.b64decode(image_base64)
-
-        if contenu.startswith(b"\x89PNG\r\n\x1a\n"):
-            extension = "png"
-        elif contenu.startswith(b"\xff\xd8\xff"):
-            extension = "jpg"
-        else:
-            return "Erreur image : format reçu non reconnu."
-
-        dossier = Path(__file__).parent / "static" / "images"
-        dossier.mkdir(parents=True, exist_ok=True)
-
-        nom = str(uuid.uuid4()) + "." + extension
-        chemin = dossier / nom
-        chemin.write_bytes(contenu)
-
-        return "/static/images/" + nom
-
-    except requests.exceptions.Timeout:
-        return "Erreur image : génération trop longue. Réessaie."
-    except requests.exceptions.ConnectionError:
-        return "Erreur image : connexion Cloudflare impossible."
-    except requests.exceptions.RequestException:
-        return "Erreur image : problème de communication avec Cloudflare."
-    except Exception:
-        return "Erreur image : problème inattendu."
+        return generer_pollinations(prompt.strip())
+    except Exception as erreur_polli:
+        try:
+            return generer_cloudflare(prompt.strip())
+        except Exception as erreur_cloud:
+            return (
+                "Erreur Pollinations : " + str(erreur_polli)[:250]
+                + " | Secours Cloudflare : " + str(erreur_cloud)[:250]
+            )
