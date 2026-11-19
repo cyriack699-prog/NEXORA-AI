@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080b18">
+<title>NEXORA AI — L'intelligence sans limites</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+--blue:#3988ff;
+--purple:#927dff;
+--bg:#080b18;
+--text:#f4f5ff;
+--muted:#a2aac4;
+}
+
+body{
+font-family:Inter,"Segoe UI",Arial,sans-serif;
+background:var(--bg);
+color:var(--text);
+overflow-x:hidden;
+}
+
+body:before{
+content:"";
+position:fixed;
+width:500px;
+height:500px;
+background:#5140d9;
+filter:blur(170px);
+opacity:.20;
+top:-220px;
+left:-150px;
+pointer-events:none;
+}
+
+body:after{
+content:"";
+position:fixed;
+width:500px;
+height:500px;
+background:#087cff;
+filter:blur(180px);
+opacity:.14;
+bottom:-250px;
+right:-180px;
+pointer-events:none;
+}
+
+nav{
+height:85px;
+max-width:1200px;
+margin:auto;
+padding:0 25px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+position:relative;
+z-index:2;
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:12px;
+font-size:23px;
+font-weight:900;
+letter-spacing:1.5px;
+}
+
+.logo-icon{
+width:43px;
+height:43px;
+border-radius:14px;
+display:grid;
+place-items:center;
+background:linear-gradient(135deg,var(--blue),var(--purple));
+box-shadow:0 0 25px #6655e866;
+font-size:23px;
+}
+
+.logo span:last-child{
+background:linear-gradient(100deg,#fff,#9e9aff);
+-webkit-background-clip:text;
+background-clip:text;
+color:transparent;
+}
+
+.nav-status{
+color:#55e3b0;
+font-size:12px;
+font-weight:700;
+}
+
+.hero{
+min-height:690px;
+padding:100px 22px 90px;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+position:relative;
+z-index:1;
+}
+
+.hero-content{
+max-width:850px;
+animation:appear .9s ease both;
+}
+
+.badge{
+display:inline-flex;
+align-items:center;
+gap:9px;
+padding:10px 17px;
+border:1px solid #ffffff20;
+border-radius:30px;
+background:#ffffff08;
+color:#c7c9ff;
+font-size:12px;
+letter-spacing:1px;
+margin-bottom:32px;
+}
+
+.badge i{
+width:7px;
+height:7px;
+border-radius:50%;
+background:#53e5ae;
+box-shadow:0 0 12px #53e5ae;
+}
+
+.hero h1{
+font-size:clamp(43px,7vw,76px);
+line-height:1.12;
+font-weight:900;
+letter-spacing:-3px;
+}
+
+.gradient{
+background:linear-gradient(100deg,#55a8ff,#9c83ff,#d3a4ff);
+-webkit-background-clip:text;
+background-clip:text;
+color:transparent;
+}
+
+.hero p{
+max-width:650px;
+margin:27px auto 35px;
+color:var(--muted);
+font-size:17px;
+line-height:1.9;
+}
+
+.cta{
+display:inline-flex;
+align-items:center;
+justify-content:center;
+gap:13px;
+padding:18px 32px;
+border-radius:15px;
+background:linear-gradient(110deg,#3988ff,#7658ed);
+color:white;
+font-weight:800;
+font-size:14px;
+letter-spacing:.5px;
+text-decoration:none;
+box-shadow:0 12px 35px #5367ff55;
+transition:.3s;
+}
+
+.cta:hover{
+transform:translateY(-4px);
+box-shadow:0 18px 45px #5367ff77;
+}
+
+.cta span{font-size:20px}
+
+.note{
+margin-top:18px;
+font-size:12px;
+color:#858da8;
+}
+
+.features{
+max-width:1100px;
+margin:0 auto;
+padding:55px 25px 100px;
+position:relative;
+z-index:1;
+}
+
+.section-title{
+text-align:center;
+font-size:30px;
+font-weight:850;
+margin-bottom:13px;
+}
+
+.section-description{
+text-align:center;
+color:var(--muted);
+font-size:14px;
+margin-bottom:42px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.card{
+padding:29px 24px;
+border:1px solid #ffffff13;
+border-radius:19px;
+background:linear-gradient(145deg,#ffffff0c,#ffffff04);
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-6px);
+border-color:#8a7aff77;
+background:#ffffff10;
+}
+
+.card-icon{
+width:49px;
+height:49px;
+display:grid;
+place-items:center;
+border-radius:14px;
+background:linear-gradient(135deg,#3988ff44,#927dff44);
+font-size:23px;
+margin-bottom:21px;
+}
+
+.card h3{
+font-size:17px;
+margin-bottom:11px;
+}
+
+.card p{
+color:var(--muted);
+font-size:13px;
+line-height:1.8;
+}
+
+.bottom-cta{
+text-align:center;
+padding:75px 20px 85px;
+border-top:1px solid #ffffff10;
+position:relative;
+z-index:1;
+}
+
+.bottom-cta h2{
+font-size:30px;
+margin-bottom:17px;
+}
+
+.bottom-cta p{
+color:var(--muted);
+margin-bottom:27px;
+font-size:14px;
+}
+
+footer{
+padding:24px;
+text-align:center;
+color:#737c99;
+font-size:12px;
+border-top:1px solid #ffffff10;
+position:relative;
+z-index:1;
+}
+
+@keyframes appear{
+from{opacity:0;transform:translateY(25px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:700px){
+nav{height:72px}
+.hero{min-height:620px;padding:75px 22px}
+.hero h1{letter-spacing:-1.8px}
+.hero p{font-size:15px}
+.cards{grid-template-columns:1fr}
+.features{padding-top:30px}
+.section-title{font-size:25px}
+.bottom-cta h2{font-size:25px}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">
+        <div class="logo-icon">✦</div>
+        <span>NEXORA AI</span>
+    </div>
+    <div class="nav-status">● Système disponible</div>
+</nav>
+
+<main>
+
+<section class="hero">
+<div class="hero-content">
+
+<div class="badge">
+<i></i>
+L'INTELLIGENCE ARTIFICIELLE NOUVELLE GÉNÉRATION
+</div>
+
+<h1>
+L'intelligence artificielle,<br>
+<span class="gradient">sans limites.</span>
+</h1>
+
+<p>
+Bienvenue dans NEXORA AI. Un espace intelligent conçu
+pour vous aider à réfléchir, créer, apprendre et transformer
+vos idées en réalisations.
+</p>
+
+<a href="/application" class="cta">
+COMMENCER GRATUITEMENT
+<span>→</span>
+</a>
+
+<div class="note">
+✦ Sans inscription · Sans mot de passe · Accès direct
+</div>
+
+</div>
+</section>
+
+<section class="features">
+
+<h2 class="section-title">Découvrez la puissance de NEXORA</h2>
+
+<p class="section-description">
+Tous les outils essentiels réunis dans un seul espace intelligent.
+</p>
+
+<div class="cards">
+
+<div class="card">
+<div class="card-icon">✦</div>
+<h3>Intelligence conversationnelle</h3>
+<p>
+Discutez, posez vos questions, obtenez des explications
+et développez vos idées avec votre assistant intelligent.
+</p>
+</div>
+
+<div class="card">
+<div class="card-icon">🎨</div>
+<h3>Création d'images</h3>
+<p>
+Donnez vie à votre imagination et transformez
+vos descriptions en créations visuelles.
+</p>
+</div>
+
+<div class="card">
+<div class="card-icon">📄</div>
+<h3>Analyse de documents</h3>
+<p>
+Importez vos fichiers PDF et Excel pour comprendre,
+analyser et exploiter leurs informations.
+</p>
+</div>
+
+</div>
+</section>
+
+<section class="bottom-cta">
+<h2>Votre prochaine idée commence ici.</h2>
+<p>Entrez dans une nouvelle expérience de l'intelligence artificielle.</p>
+
+<a href="/application" class="cta">
+DÉCOUVRIR NEXORA AI <span>→</span>
+</a>
+</section>
+
+</main>
+
+<footer>
+© 2026 NEXORA AI — Tous droits réservés.
+</footer>
+
+</body>
+</html>

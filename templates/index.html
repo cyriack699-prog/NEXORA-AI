@@ -1,69 +1,4427 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NEXORA AI</title>
+<title>NEXORA AI — Premium</title>
+
+
 <style>
+:root {
+--fond:#f7f8fc;
+--panneau:#ffffff;
+--texte:#20243a;
+--secondaire:#858ba3;
+--bordure:#e8eaf2;
+--accent:#6655e8;
+--bleu:#3988ff;
+--message:#eef1fa;
+--ombre:0 12px 40px rgba(35,45,100,.07);
+}
+body.dark-theme {
+--fond:#0c1020;
+--panneau:#12182a;
+--texte:#f1f3ff;
+--secondaire:#929bb8;
+--bordure:#252d45;
+--accent:#927dff;
+--bleu:#54a2ff;
+--message:#202941;
+}
 *{box-sizing:border-box}
-body{margin:0;background:#090d18;color:white;font-family:Arial,sans-serif;height:100dvh;display:flex;flex-direction:column}
-header{padding:18px;text-align:center;background:#111827;border-bottom:1px solid #263248}
-header h2{margin:0;color:#8b9cff}
-header p{margin:7px 0 0;color:#9ca3af;font-size:13px}
-#chat{flex:1;overflow-y:auto;padding:18px}
-.message{max-width:85%;padding:13px 16px;margin:12px 0;border-radius:16px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
-.user{background:#4658c9;margin-left:auto;border-bottom-right-radius:4px}
-.bot{background:#192337;margin-right:auto;border:1px solid #29364d;border-bottom-left-radius:4px}
-#zone{display:flex;padding:12px;gap:10px;background:#111827}
-textarea{flex:1;resize:none;border:1px solid #34415a;border-radius:14px;background:#202b3d;color:white;padding:13px;outline:none;font-size:15px;min-height:48px}
-button{border:0;border-radius:14px;background:#6478ff;color:white;padding:0 18px;font-weight:bold;font-size:20px}
-button:disabled{opacity:.5}
+body{
+margin:0;height:100vh;display:flex;overflow:hidden;
+font-family:Inter,"Segoe UI",Arial,sans-serif;
+background:var(--fond);color:var(--texte);
+transition:background .3s,color .3s;
+}
+button{font-family:inherit;transition:.2s ease}
+
+.sidebar{
+width:285px;min-width:285px;display:flex;flex-direction:column;
+padding:20px 15px;background:var(--panneau);
+border-right:1px solid var(--bordure);z-index:1000;
+}
+.sidebar-top{padding:0 5px}
+.logo{display:flex;align-items:center;gap:12px;padding:8px;font-size:22px;font-weight:800;letter-spacing:1px}
+.brand-mark{width:43px;height:43px;flex-shrink:0;filter:drop-shadow(0 5px 12px rgba(102,85,232,.3));transition:transform .25s}
+.logo:hover .brand-mark{transform:rotate(-5deg) scale(1.06)}
+.logo span{font-weight:850;letter-spacing:1.2px}
+.logo small{color:var(--accent);font-size:13px;font-weight:800}
+.sidebar-subtitle{padding:0 10px;color:var(--secondaire);font-size:9px;font-weight:800;letter-spacing:2px}
+.new{
+display:flex;align-items:center;gap:12px;width:100%;padding:14px;margin:25px 0 15px;
+border:1px solid rgba(255,255,255,.12);border-radius:14px;
+background:linear-gradient(120deg,var(--accent),var(--bleu));
+color:white;text-align:left;font-size:14px;font-weight:700;cursor:pointer;
+box-shadow:0 7px 22px rgba(102,85,232,.22);
+}
+.new:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,85,232,.32)}
+.shortcut-icon{font-size:21px}
+.sidebar-search{display:flex;align-items:center;gap:9px;padding:10px 12px;margin:0 0 22px;border:1px solid var(--bordure);border-radius:12px;background:var(--fond);color:var(--secondaire)}
+.sidebar-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--texte);font:inherit;font-size:12px}
+.sidebar-search kbd{font-size:11px;opacity:.6}
+.sidebar-label,.history-heading{padding:8px 10px;color:var(--secondaire);font-size:9px;font-weight:800;letter-spacing:1.7px}
+.sidebar-links{display:flex;flex-direction:column;gap:4px;margin-bottom:18px}
+.sidebar-link{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:0;border-radius:10px;background:transparent;color:var(--texte);text-align:left;font-size:13px;cursor:pointer}
+.sidebar-link:hover{background:var(--message);transform:translateX(3px)}
+.link-icon{width:20px;color:var(--accent);font-size:17px;text-align:center}
+.coming-soon{margin-left:auto;padding:3px 6px;border-radius:6px;background:var(--message);color:var(--secondaire);font-size:9px}
+.history-heading{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
+.history-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 9px var(--accent)}
+#historique{flex:1;min-height:40px;overflow-y:auto;scrollbar-width:thin}
+.history-item{padding:12px;margin:4px 0;border-radius:10px;cursor:pointer;color:var(--texte);font-size:12px}
+.history-item:hover{background:var(--message);transform:translateX(3px)}
+.bottom{border-top:1px solid var(--bordure);padding-top:12px;margin-top:12px}
+.profile-card{display:flex;align-items:center;gap:11px;padding:10px;margin-bottom:8px;border-radius:12px;background:var(--fond)}
+.profile-avatar{display:flex;align-items:center;justify-content:center;width:35px;height:35px;border-radius:11px;background:linear-gradient(135deg,var(--bleu),var(--accent));color:white;font-weight:800}
+.profile-info{display:flex;flex-direction:column;gap:3px}
+.profile-info strong{font-size:12px;color:var(--texte)}
+.profile-info small{font-size:10px;color:var(--secondaire)}
+.bottom button{display:flex;align-items:center;gap:12px;width:100%;padding:11px;border:0;border-radius:10px;background:transparent;color:var(--texte);text-align:left;cursor:pointer;font-size:12px}
+.bottom button:hover{background:var(--message)}
+.bottom .ico{width:18px;height:18px;flex-shrink:0}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;background:transparent;position:relative}
+header{height:60px;flex-shrink:0;display:flex;align-items:center;padding:0 18px;border-bottom:0;background:transparent}
+header h3{font-size:16px;font-weight:800;letter-spacing:.5px}
+.status{margin-left:auto;color:#20b981;font-size:12px;font-weight:700}
+#theme-toggle{padding:10px 13px;border:1px solid var(--bordure);border-radius:12px;background:var(--fond);color:var(--texte);cursor:pointer}
+#theme-toggle:hover{border-color:var(--accent);transform:rotate(10deg)}
+.menu{display:flex;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid var(--bordure);border-radius:12px;background:var(--fond);color:var(--texte);cursor:pointer}.menu:hover{background:var(--message);border-color:var(--accent)}
+#chat{flex:1;width:100%;max-width:920px;margin:0 auto;padding:35px 25px;overflow-y:auto;scroll-behavior:smooth}
+.welcome{max-width:680px;margin:12vh auto 0;text-align:center;animation:apparition .7s ease both}
+.orb{display:flex;align-items:center;justify-content:center;width:76px;height:76px;margin:0 auto 25px;border-radius:25px;background:linear-gradient(135deg,#3988ff,#8b50ed);color:white;font-size:35px;box-shadow:0 0 35px rgba(102,85,232,.3)}
+.welcome h1{font-size:34px;font-weight:800;letter-spacing:-.8px;background:linear-gradient(100deg,var(--bleu),var(--accent));background-clip:text;-webkit-background-clip:text;color:transparent}
+.welcome p{color:var(--secondaire);line-height:1.8;font-size:15px}
+.suggestions{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-top:35px}
+.suggestion{min-height:75px;padding:17px;border:1px solid var(--bordure);border-radius:16px;background:var(--panneau);color:var(--texte);text-align:left;font-size:13px;cursor:pointer;box-shadow:var(--ombre)}
+.suggestion:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 25px rgba(102,85,232,.12)}
+.message{max-width:100%;margin:22px 0;padding:15px 18px;border-radius:16px;line-height:1.8;overflow-wrap:anywhere;white-space:pre-wrap;animation:apparition .3s ease}
+.message.user{width:fit-content;max-width:85%;margin-left:auto;background:linear-gradient(120deg,#6655e8,#3988ff);color:white;border-bottom-right-radius:5px;box-shadow:0 7px 20px rgba(75,105,230,.16)}
+.message.bot{background:transparent;color:var(--texte);border-bottom-left-radius:5px}
+.image-generee{display:block;max-width:100%;border-radius:17px;margin-top:16px;cursor:zoom-in;box-shadow:var(--ombre)}
+
+.download-image{
+display:inline-flex;
+align-items:center;
+gap:10px;
+margin-top:14px;
+padding:11px 17px;
+border:1px solid var(--bordure);
+border-radius:14px;
+background:var(--panneau);
+color:var(--texte);
+text-decoration:none;
+font-size:14px;
+font-weight:600;
+transition:all .2s ease;
+box-shadow:var(--ombre);
+}
+.download-image:hover{
+background:var(--message);
+border-color:var(--accent);
+transform:translateY(-2px);
+}
+.download-image:active{transform:scale(.97)}
+.download-image svg{width:19px;height:19px;flex-shrink:0}
+
+#zone{width:calc(100% - 50px);max-width:850px;margin:12px auto 10px;padding:11px;display:flex;align-items:flex-end;gap:10px;border:1px solid var(--bordure);border-radius:22px;background:var(--panneau);box-shadow:0 8px 35px rgba(30,40,90,.09);transition:border-color .2s,box-shadow .2s}
+#zone:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(102,85,232,.09)}
+.input-box{flex:1;min-width:0}
+#question{width:100%;max-height:150px;padding:12px 6px;resize:none;border:0;outline:0;background:transparent;color:var(--texte);font:inherit;font-size:14px}
+#question::placeholder{color:var(--secondaire)}
+.photo-btn,.send{width:43px;height:43px;flex-shrink:0;border:0;border-radius:14px;background:var(--message);color:var(--texte);font-size:21px;cursor:pointer}
+.photo-btn:hover{background:var(--bordure);transform:scale(1.05)}
+.send{background:linear-gradient(135deg,#6655e8,#3988ff);color:white;box-shadow:0 5px 15px rgba(102,85,232,.25)}
+.send:hover{transform:scale(1.07)}
+
+/* MICROPHONE NEXORA */
+#bouton-vocal{
+    width:43px;
+    height:43px;
+    flex-shrink:0;
+    border:1px solid var(--bordure);
+    border-radius:14px;
+    background:var(--message);
+    color:var(--texte);
+    font-size:20px;
+    cursor:pointer;
+    transition:all .2s ease;
+}
+#bouton-vocal:hover{
+    background:var(--bordure);
+    transform:scale(1.06);
+}
+#bouton-vocal.ecoute-active{
+    background:#6655e8;
+    color:white;
+    border-color:#6655e8;
+    animation:pulseVocal 1.2s infinite;
+}
+@keyframes pulseVocal{
+    0%,100%{box-shadow:0 0 0 0 rgba(102,85,232,.4)}
+    50%{box-shadow:0 0 0 9px rgba(102,85,232,0)}
+}
+
+.send:disabled{opacity:.5}
+.attach-wrap{position:relative;display:flex;align-items:center}
+#menu-ajout{display:none;position:absolute;bottom:54px;left:0;z-index:100;width:220px;padding:9px;border:1px solid var(--bordure);border-radius:15px;background:var(--panneau);box-shadow:var(--ombre)}
+#menu-ajout.ouvert{display:flex;flex-direction:column;gap:5px;animation:apparition .2s ease}
+#menu-ajout button{padding:13px;border:0;border-radius:10px;background:transparent;color:var(--texte);text-align:left;cursor:pointer}
+#menu-ajout button:hover{background:var(--message)}
+.note{padding:0 10px 12px;color:var(--secondaire);text-align:center;font-size:11px}
+
+/* PARAMETRES NEXORA AI */
+#settings{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(0,0,0,.38);
+    backdrop-filter:blur(3px);
+}
+
+.settings-panel{
+    width:100%;
+    max-width:950px;
+    height:min(680px,88vh);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:1px solid var(--bordure);
+    border-radius:18px;
+    background:var(--panneau);
+    color:var(--texte);
+    box-shadow:0 25px 80px rgba(0,0,0,.25),0 0 35px rgba(102,85,232,.10);
+    animation:panneauEntree .25s ease both;
+}
+
+.settings-header{
+    height:65px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 25px;
+    border-bottom:1px solid var(--bordure);
+}
+
+.settings-header h2{
+    font-size:19px;
+    font-weight:700;
+}
+
+.settings-close{
+    width:36px;
+    height:36px;
+    border:0;
+    border-radius:10px;
+    background:var(--message);
+    color:var(--texte);
+    cursor:pointer;
+}
+
+.settings-layout{
+    flex:1;
+    min-height:0;
+    display:flex;
+}
+
+.settings-nav{
+    width:235px;
+    flex-shrink:0;
+    padding:20px 12px;
+    border-right:1px solid var(--bordure);
+    overflow-y:auto;
+}
+
+.settings-tab{
+    width:100%;
+    display:block;
+    padding:13px 14px;
+    margin-bottom:5px;
+    border:0;
+    border-radius:10px;
+    background:transparent;
+    color:var(--texte);
+    text-align:left;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.settings-tab:hover{
+    background:var(--message);
+}
+
+.settings-tab.active{
+    background:linear-gradient(110deg,rgba(102,85,232,.16),rgba(57,136,255,.10));
+    color:var(--accent);
+    font-weight:800;
+    box-shadow:inset 3px 0 0 var(--accent);
+}
+
+.settings-content{
+    flex:1;
+    min-width:0;
+    padding:30px;
+    overflow-y:auto;
+}
+
+.settings-section{
+    display:none;
+    animation:apparition .2s ease;
+}
+
+.settings-section.active{
+    display:block;
+}
+
+.settings-section h3{
+    margin:0 0 8px;
+    font-size:22px;
+}
+
+.settings-description{
+    margin:0 0 25px;
+    color:var(--secondaire);
+    font-size:14px;
+}
+
+.settings-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+    padding:18px;
+    margin-bottom:12px;
+    border:1px solid var(--bordure);
+    border-radius:14px;
+    background:var(--fond);
+    font-size:14px;
+    transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.settings-card:hover{
+    border-color:var(--accent);
+    transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(102,85,232,.08);
+}
+
+.settings-card span{
+    color:var(--secondaire);
+}
+
+.settings-card strong{
+    font-weight:600;
+}
+
+.settings-card button{
+    padding:9px 14px;
+    border:1px solid var(--bordure);
+    border-radius:9px;
+    background:var(--message);
+    color:var(--texte);
+    cursor:pointer;
+}
+
+@media(max-width:650px){
+    #settings{
+        padding:0;
+    }
+
+    .settings-panel{
+        height:100%;
+        max-height:100%;
+        border:0;
+        border-radius:0;
+    }
+
+    .settings-header{
+        padding:0 16px;
+    }
+
+    .settings-layout{
+        flex-direction:column;
+    }
+
+    .settings-nav{
+        width:100%;
+        display:flex;
+        gap:6px;
+        padding:10px;
+        border-right:0;
+        border-bottom:1px solid var(--bordure);
+        overflow-x:auto;
+    }
+
+    .settings-tab{
+        width:auto;
+        min-width:max-content;
+        margin:0;
+        padding:11px;
+        font-size:12px;
+    }
+
+    .settings-content{
+        padding:22px 16px;
+    }
+
+    .settings-card{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+}
+
+.typing-indicator{display:inline-flex;gap:5px;margin-left:8px}
+.typing-indicator span{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:typingDot 1.2s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes typingDot{50%{opacity:.3;transform:translateY(-4px)}}
+@keyframes apparition{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){
+.sidebar{position:fixed;top:0;bottom:0;left:-280px;transition:left .25s ease}
+.sidebar.open{left:0}
+.menu{display:flex}
+header{height:60px;padding:0 13px;gap:10px}
+header h3{font-size:14px}
+#chat{padding:20px 13px}
+#zone{width:calc(100% - 18px);border-radius:18px}
+.suggestions{grid-template-columns:1fr;gap:9px}
+.welcome{margin-top:8vh}
+.welcome h1{font-size:26px}
+.welcome p{font-size:13px}
+.orb{width:65px;height:65px}
+.message{padding:12px}
+}
+
+
+/* ICONES SVG NEXORA */
+.ico{
+    width:19px;
+    height:19px;
+    display:inline-block;
+    flex-shrink:0;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    vertical-align:middle;
+}
+.bottom button,.suggestion,#menu-ajout button{
+    display:flex;
+    align-items:center;
+    gap:11px;
+}
+.header-brand{
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
+.header-logo{
+    width:25px;
+    height:25px;
+    color:#6655e8;
+}
+.send-icon{
+    width:21px;
+    height:21px;
+}
+
+
+/* =================================
+   NEXORA — MINIMAL CHILL DESIGN
+================================= */
+
+:root {
+    --fond:#F8F7F3;
+    --panneau:#FFFFFF;
+    --texte:#292A27;
+    --secondaire:#898A80;
+    --bordure:#EAE9E2;
+    --accent:#899982;
+    --bleu:#899982;
+    --message:#F0F0E9;
+    --ombre:0 8px 30px rgba(40,40,30,.045);
+}
+
+body.dark-theme {
+    --fond:#20221F;
+    --panneau:#282A26;
+    --texte:#F0F0E9;
+    --secondaire:#A5A69B;
+    --bordure:#393B35;
+    --accent:#A4B29B;
+    --bleu:#A4B29B;
+    --message:#343730;
+    --ombre:0 8px 30px rgba(0,0,0,.12);
+}
+
+body {
+    background:var(--fond);
+    color:var(--texte);
+    font-family:Inter,"Segoe UI",sans-serif;
+    letter-spacing:-.15px;
+}
+
+button {
+    transition:background .25s ease,
+               transform .25s ease,
+               border-color .25s ease;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+    background:var(--panneau);
+    border-right:1px solid var(--bordure);
+}
+
+.logo {
+    font-size:21px;
+    letter-spacing:1.5px;
+}
+
+.brand-mark {
+    filter:none;
+    transition:transform .4s ease;
+}
+
+.logo:hover .brand-mark {
+    transform:rotate(-4deg) scale(1.04);
+}
+
+.logo small,
+.link-icon {
+    color:var(--accent);
+}
+
+.sidebar-subtitle,
+.sidebar-label,
+.history-heading {
+    letter-spacing:1.5px;
+    font-weight:650;
+}
+
+.new {
+    background:#E9EDE5;
+    color:#465343;
+    border:1px solid #E0E6DB;
+    border-radius:13px;
+    box-shadow:none;
+}
+
+body.dark-theme .new {
+    background:#3A4337;
+    color:#E8EDE2;
+    border-color:#46513F;
+}
+
+.new:hover {
+    background:#DFE6DA;
+    box-shadow:none;
+    transform:translateY(-2px);
+}
+
+body.dark-theme .new:hover {
+    background:#46513F;
+}
+
+.sidebar-search {
+    background:var(--fond);
+    border-radius:12px;
+}
+
+.sidebar-link {
+    border-radius:11px;
+}
+
+.sidebar-link:hover,
+.history-item:hover {
+    background:var(--message);
+    transform:translateX(2px);
+}
+
+.history-dot {
+    background:var(--accent);
+    box-shadow:none;
+}
+
+.profile-avatar {
+    background:#E1E7DC;
+    color:#52634D;
+}
+
+body.dark-theme .profile-avatar {
+    background:#45513F;
+    color:#E7EDE1;
+}
+
+/* HEADER */
+
+header {
+    background:var(--fond);
+}
+
+header h3 {
+    font-weight:650;
+    letter-spacing:-.4px;
+}
+
+.status {
+    color:#82977B;
+    font-weight:550;
+}
+
+#theme-toggle,
+.menu {
+    background:var(--panneau);
+    border:1px solid var(--bordure);
+    border-radius:12px;
+}
+
+#theme-toggle:hover,
+.menu:hover {
+    border-color:var(--accent);
+    transform:translateY(-1px);
+}
+
+/* ACCUEIL */
+
+.welcome {
+    animation:apparition .65s ease both;
+}
+
+.orb {
+    width:68px;
+    height:68px;
+    border-radius:22px;
+    background:#E9EDE5;
+    color:#65745F;
+    box-shadow:none;
+    font-size:30px;
+}
+
+body.dark-theme .orb {
+    background:#394337;
+    color:#C2D0B8;
+}
+
+.welcome h1 {
+    color:var(--texte);
+    background:none;
+    -webkit-text-fill-color:var(--texte);
+    font-size:34px;
+    font-weight:700;
+    letter-spacing:-1.3px;
+}
+
+.welcome p {
+    color:var(--secondaire);
+    line-height:1.85;
+}
+
+.suggestions {
+    gap:12px;
+}
+
+.suggestion {
+    background:var(--panneau);
+    border:1px solid var(--bordure);
+    border-radius:15px;
+    box-shadow:none;
+    transition:transform .25s ease,
+               border-color .25s ease,
+               background .25s ease;
+}
+
+.suggestion:hover {
+    background:var(--message);
+    border-color:var(--accent);
+    transform:translateY(-3px);
+    box-shadow:none;
+}
+
+/* MESSAGES */
+
+.message {
+    line-height:1.85;
+    animation:messageEntree .35s ease both;
+}
+
+.message.user {
+    background:#E9EDE5;
+    color:#333B30;
+    border:1px solid #E0E6DB;
+    border-radius:17px 17px 5px 17px;
+    box-shadow:none;
+}
+
+body.dark-theme .message.user {
+    background:#3C4638;
+    color:#F0F2EA;
+    border-color:#46513F;
+}
+
+.message.bot {
+    background:transparent;
+    color:var(--texte);
+}
+
+/* ZONE DE SAISIE */
+
+#zone {
+    background:var(--panneau);
+    border:1px solid var(--bordure);
+    border-radius:19px;
+    box-shadow:0 5px 25px rgba(40,40,30,.045);
+    transition:border-color .25s ease,
+               box-shadow .25s ease;
+}
+
+#zone:focus-within {
+    border-color:#A7B29E;
+    box-shadow:0 0 0 3px rgba(137,153,130,.10);
+}
+
+#question {
+    color:var(--texte);
+    font-size:14px;
+}
+
+#question::placeholder {
+    color:var(--secondaire);
+}
+
+.photo-btn,
+#bouton-vocal {
+    background:var(--message);
+    color:var(--texte);
+    border:1px solid transparent;
+    border-radius:13px;
+}
+
+.photo-btn:hover,
+#bouton-vocal:hover {
+    background:var(--bordure);
+    transform:translateY(-1px);
+}
+
+.send {
+    background:#899982;
+    color:white;
+    box-shadow:none;
+    border-radius:13px;
+}
+
+.send:hover {
+    background:#74866D;
+    transform:translateY(-2px);
+}
+
+#bouton-vocal.ecoute-active {
+    background:#899982;
+    border-color:#899982;
+    animation:pulseVocal 1.8s infinite;
+}
+
+@keyframes pulseVocal {
+    0%,100% {
+        box-shadow:0 0 0 0 rgba(137,153,130,.18);
+    }
+    50% {
+        box-shadow:0 0 0 6px rgba(137,153,130,0);
+    }
+}
+
+/* MENU ET PARAMETRES */
+
+#menu-ajout,
+.settings-panel {
+    background:var(--panneau);
+    border:1px solid var(--bordure);
+    box-shadow:var(--ombre);
+}
+
+#menu-ajout {
+    border-radius:15px;
+}
+
+#menu-ajout button:hover {
+    background:var(--message);
+}
+
+.settings-panel {
+    border-radius:20px;
+}
+
+.settings-header {
+    border-bottom:1px solid var(--bordure);
+}
+
+.settings-close {
+    border-radius:11px;
+}
+
+.download-image {
+    border-radius:12px;
+    box-shadow:none;
+}
+
+.download-image:hover {
+    border-color:var(--accent);
+    transform:translateY(-2px);
+}
+
+/* ANIMATIONS DOUCES */
+
+@keyframes apparition {
+    from {
+        opacity:0;
+        transform:translateY(9px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes messageEntree {
+    from {
+        opacity:0;
+        transform:translateY(6px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration:.01ms !important;
+        transition-duration:.01ms !important;
+    }
+}
+
 </style>
+
+<style>
+/* NEXORA — ANIMATIONS PROFESSIONNELLES */
+
+button {
+    transition: transform .18s ease, background .2s ease,
+                box-shadow .2s ease, border-color .2s ease;
+}
+
+.message {
+    animation: messageEntree .35s cubic-bezier(.2,.7,.3,1) both;
+}
+
+@keyframes messageEntree {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#settings[style*="flex"] .panel {
+    animation: panneauEntree .28s ease both;
+}
+
+@keyframes panneauEntree {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.sidebar {
+    transition: transform .28s ease, background .3s ease;
+}
+
+.history-item {
+    transition: background .2s ease, transform .2s ease;
+}
+
+.suggestion {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+#zone {
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.send:active, .photo-btn:active, .bottom button:active {
+    transform: scale(.94);
+}
+
+#menu-ajout.ouvert {
+    animation: menuEntree .2s ease both;
+}
+
+@keyframes menuEntree {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#chat {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}
+</style>
+
+<style id="nexora-design-final">
+:root{--fond:#191D19;--panneau:#252B25;--texte:#F3F1E9;--secondaire:#A7AAA0;--bordure:#394137;--accent:#A7B99C;--message:#30382F}
+html,body{max-width:100%;overflow-x:hidden;background:var(--fond)}
+#chat{width:100%;max-width:760px;margin:auto;box-sizing:border-box}
+.welcome{width:100%;box-sizing:border-box;margin:auto;padding:30px 17px;text-align:center}
+.welcome h1{font-size:clamp(27px,7vw,42px);line-height:1.2;overflow-wrap:anywhere;color:#F3F1E9}
+.welcome p{color:#A7AAA0;line-height:1.8}
+.orb{width:90px;height:90px;margin:15px auto 25px;background:#303B30;color:#DDE7D6;border-radius:26px;display:grid;place-items:center}
+.orb svg{width:55px;height:55px}
+.brand-mark{width:48px;height:48px;filter:none}
+#menu-ajout{width:min(330px,calc(100vw - 35px));max-height:70vh;overflow:auto;background:#252B25;border:1px solid #414A3F;border-radius:18px;padding:10px;box-sizing:border-box}
+#menu-ajout.ouvert{display:flex;flex-direction:column;gap:5px}
+#menu-ajout button{padding:13px;border:0;border-radius:12px;background:transparent;color:#F3F1E9;text-align:left;font-size:15px}
+#menu-ajout button:active{background:#384235}
+.menu-separator{padding:12px 8px;color:#A7B99C;border-top:1px solid #414A3F;font-size:11px;font-weight:bold;letter-spacing:1.5px}
+.send{background:#A7B99C!important;color:#20251F!important}
+@media(max-width:650px){.welcome{padding:25px 16px}.welcome h1{font-size:clamp(27px,7vw,38px)}}
+
+/* ===== NEXORA AI — DESIGN PREMIUM ===== */
+
+:root {
+    --fond: #f7f7f5;
+    --panneau: #ffffff;
+    --texte: #252722;
+    --secondaire: #85877f;
+    --bordure: #e8e9e4;
+    --accent: #82977b;
+    --bleu: #82977b;
+    --message: #efefeb;
+    --ombre: 0 8px 30px rgba(30,35,25,.045);
+}
+
+body.dark-theme {
+    --fond: #171916;
+    --panneau: #20231f;
+    --texte: #f0f1eb;
+    --secondaire: #a1a59a;
+    --bordure: #343831;
+    --accent: #a4b49b;
+    --bleu: #a4b49b;
+    --message: #2b3029;
+    --ombre: 0 8px 30px rgba(0,0,0,.16);
+}
+
+body {
+    background: var(--fond) !important;
+    color: var(--texte) !important;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    transition: background .3s ease, color .3s ease;
+}
+
+.sidebar {
+    background: var(--panneau) !important;
+    border-right: 1px solid var(--bordure) !important;
+}
+
+.main, header {
+    background: transparent !important;
+}
+
+header {
+    border-bottom: 1px solid var(--bordure);
+}
+
+.logo {
+    gap: 13px;
+    font-size: 22px !important;
+    font-weight: 850;
+    letter-spacing: 1.7px !important;
+}
+
+.brand-mark {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 7px;
+    border-radius: 15px;
+    background: linear-gradient(145deg,#a8b8a0,#657d61);
+    filter: drop-shadow(0 5px 10px rgba(90,115,82,.18));
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.logo:hover .brand-mark {
+    transform: translateY(-2px) rotate(-4deg) scale(1.04);
+}
+
+.logo small {
+    color: var(--accent) !important;
+}
+
+#theme-toggle, .menu {
+    background: var(--panneau) !important;
+    color: var(--texte) !important;
+    border: 1px solid var(--bordure) !important;
+    border-radius: 13px !important;
+    transition: .2s ease;
+}
+
+#theme-toggle:hover, .menu:hover {
+    background: var(--message) !important;
+    border-color: var(--accent) !important;
+    transform: translateY(-2px);
+}
+
+.new {
+    background: linear-gradient(120deg,#82977b,#657d61) !important;
+    border: 0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 6px 18px rgba(100,125,90,.16);
+}
+
+.orb {
+    width: 78px !important;
+    height: 78px !important;
+    border-radius: 25px !important;
+    background: linear-gradient(145deg,#a8b8a0,#657d61) !important;
+    box-shadow: 0 12px 30px rgba(100,125,90,.20) !important;
+    animation: nexoraFloat 4s ease-in-out infinite;
+}
+
+.welcome h1 {
+    background: none !important;
+    color: var(--texte) !important;
+    font-size: clamp(27px,4vw,36px) !important;
+    letter-spacing: -1.2px;
+}
+
+.welcome p {
+    color: var(--secondaire) !important;
+}
+
+.suggestion {
+    background: var(--panneau) !important;
+    color: var(--texte) !important;
+    border: 1px solid var(--bordure) !important;
+    border-radius: 17px !important;
+    box-shadow: var(--ombre) !important;
+    transition: transform .22s ease, border-color .22s ease;
+}
+
+.suggestion:hover {
+    border-color: var(--accent) !important;
+    transform: translateY(-3px);
+}
+
+.message.user {
+    background: #82977b !important;
+    color: white !important;
+}
+
+.message.bot {
+    color: var(--texte) !important;
+}
+
+#menu-ajout {
+    background: var(--panneau) !important;
+    border: 1px solid var(--bordure) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--ombre) !important;
+}
+
+#menu-ajout button {
+    color: var(--texte) !important;
+}
+
+#menu-ajout button:hover {
+    background: var(--message) !important;
+}
+
+input, textarea, select {
+    background: var(--panneau);
+    color: var(--texte);
+    border-color: var(--bordure);
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes nexoraFloat {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@media (max-width: 650px) {
+    #chat {
+        padding: 22px 14px !important;
+    }
+    .welcome {
+        margin-top: 8vh !important;
+    }
+    .suggestions {
+        gap: 9px !important;
+    }
+    .suggestion {
+        padding: 13px !important;
+        min-height: 68px !important;
+    }
+}
+
+
+/* ===== NEXORA ELECTRIC PREMIUM ===== */
+
+:root {
+    --fond:#f5f7ff;
+    --panneau:#ffffff;
+    --texte:#171b2c;
+    --secondaire:#777f99;
+    --bordure:#e2e7f4;
+    --accent:#7655ff;
+    --bleu:#00aaff;
+    --message:#edf1ff;
+    --ombre:0 10px 35px rgba(65,75,150,.09);
+}
+
+body.dark-theme {
+    --fond:#090c17;
+    --panneau:#111729;
+    --texte:#f4f6ff;
+    --secondaire:#9aa5c2;
+    --bordure:#252e48;
+    --accent:#9677ff;
+    --bleu:#35c8ff;
+    --message:#1c2740;
+    --ombre:0 12px 40px rgba(0,0,0,.30);
+}
+
+body {
+    background:var(--fond) !important;
+    color:var(--texte) !important;
+}
+
+.sidebar {
+    background:var(--panneau) !important;
+    border-color:var(--bordure) !important;
+}
+
+.brand-mark {
+    background:linear-gradient(135deg,#7955ff,#00bfff) !important;
+    border-radius:15px;
+    padding:7px;
+    box-shadow:0 0 22px rgba(100,90,255,.32);
+}
+
+.logo small {
+    color:var(--bleu) !important;
+}
+
+.settings-header {
+    background:var(--panneau);
+    border-bottom:1px solid var(--bordure);
+}
+
+.settings-brand {
+    display:flex;
+    align-items:center;
+    gap:13px;
+}
+
+.settings-brand .brand-mark {
+    width:42px;
+    height:42px;
+    flex-shrink:0;
+}
+
+.settings-brand h2 {
+    margin:0;
+    font-size:19px;
+    font-weight:800;
+    color:var(--texte);
+}
+
+.settings-panel {
+    background:var(--panneau);
+    border:1px solid var(--bordure);
+    box-shadow:0 20px 80px rgba(65,75,180,.18),
+               0 0 35px rgba(105,75,255,.12);
+}
+
+.settings-tab.active {
+    background:linear-gradient(110deg,
+        rgba(118,85,255,.18),
+        rgba(0,180,255,.13)) !important;
+    color:var(--accent) !important;
+    box-shadow:inset 3px 0 0 var(--accent);
+}
+
+.settings-card {
+    background:var(--fond);
+    border-color:var(--bordure);
+}
+
+.settings-card:hover {
+    border-color:var(--accent);
+    box-shadow:0 8px 25px rgba(100,80,255,.12);
+}
+
+.settings-close {
+    background:var(--message);
+    color:var(--texte);
+}
+
+.new, .send {
+    background:linear-gradient(120deg,#7955ff,#168fff) !important;
+    color:white !important;
+    box-shadow:0 6px 22px rgba(90,90,255,.23);
+}
+
+.new:hover, .send:hover {
+    filter:brightness(1.12);
+    transform:translateY(-2px);
+}
+
+.orb {
+    background:linear-gradient(135deg,#7955ff,#168fff,#00d5ed) !important;
+    box-shadow:0 0 35px rgba(90,110,255,.28) !important;
+}
+
+.welcome h1 {
+    background:linear-gradient(100deg,#7955ff,#168fff,#00bdda) !important;
+    background-clip:text !important;
+    -webkit-background-clip:text !important;
+    color:transparent !important;
+}
+
+.suggestion {
+    background:var(--panneau) !important;
+    color:var(--texte) !important;
+    border-color:var(--bordure) !important;
+}
+
+.suggestion:hover {
+    border-color:var(--accent) !important;
+    box-shadow:0 8px 25px rgba(100,80,255,.13) !important;
+}
+
+.message.user {
+    background:linear-gradient(120deg,#7955ff,#168fff) !important;
+}
+
+#theme-toggle:hover,
+.menu:hover,
+.settings-close:hover {
+    border-color:var(--accent);
+    box-shadow:0 0 15px rgba(100,90,255,.15);
+}
+
+#menu-ajout {
+    background:var(--panneau) !important;
+    border-color:var(--bordure) !important;
+}
+
+#menu-ajout button:hover {
+    background:var(--message) !important;
+}
+
+input, textarea, select {
+    background:var(--panneau);
+    color:var(--texte);
+    border-color:var(--bordure);
+}
+
+::selection {
+    background:rgba(118,85,255,.25);
+}
+
+
+/* ===== NEXORA MOBILE RESPONSIVE PREMIUM ===== */
+
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.main {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+#chat {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 22px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.message {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.message.user {
+    max-width: 88%;
+}
+
+.message.bot {
+    width: 100%;
+    min-width: 0;
+}
+
+.image-generee {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 65dvh;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+    margin: 16px auto 0;
+    border-radius: 18px;
+}
+
+#zone {
+    flex: 0 0 auto;
+    width: calc(100% - 40px);
+    max-width: 850px;
+    margin: 10px auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#question {
+    min-width: 0;
+    width: 100%;
+}
+
+@media (max-width: 700px) {
+
+    body {
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    .main {
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    header {
+        flex: 0 0 56px;
+        height: 56px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    #chat {
+        width: 100%;
+        max-width: 100%;
+        padding: 18px 16px 22px;
+        margin: 0;
+    }
+
+    .message {
+        margin: 16px 0;
+        padding: 13px 15px;
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .message.user {
+        max-width: 90%;
+    }
+
+    .image-generee {
+        max-width: 100%;
+        max-height: 58dvh;
+        margin: 14px auto 0;
+        border-radius: 17px;
+    }
+
+    #zone {
+        width: calc(100% - 24px);
+        max-width: none;
+        margin: 8px 12px;
+        padding: 9px;
+        gap: 8px;
+        border-radius: 21px;
+    }
+
+    #question {
+        font-size: 15px;
+        min-height: 43px;
+    }
+
+    .photo-btn,
+    #bouton-vocal,
+    .send {
+        width: 43px;
+        height: 43px;
+        flex-shrink: 0;
+    }
+
+    .note {
+        padding: 2px 12px
+            calc(8px + env(safe-area-inset-bottom));
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .welcome {
+        margin: 7vh auto 0;
+        padding: 0 5px;
+    }
+
+    .welcome h1 {
+        font-size: 27px;
+    }
+}
+
+@media (max-width: 380px) {
+    #zone {
+        gap: 5px;
+        padding: 7px;
+    }
+
+    .photo-btn,
+    #bouton-vocal,
+    .send {
+        width: 39px;
+        height: 39px;
+    }
+
+    #chat {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+
+/* LOGO OFFICIEL NEXORA */
+.brand-mark {
+    width:48px !important;
+    height:48px !important;
+    flex-shrink:0;
+    padding:7px;
+    border-radius:15px;
+    background:linear-gradient(135deg,#7655ff,#168fff,#00c9ed);
+    box-shadow:0 0 22px rgba(65,115,255,.35);
+}
+
+/* HISTORIQUE AGRANDI */
+#historique {
+    flex:1 1 auto !important;
+    min-height:100px !important;
+    overflow-y:auto !important;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+}
+
+.history-item {
+    padding:14px !important;
+    margin:5px 0 !important;
+    border-radius:12px !important;
+    font-size:13px !important;
+}
+
+
+
+/* =====================================
+   NEXORA AI — HISTORIQUE STYLE CHATGPT
+===================================== */
+
+.sidebar {
+    display:flex !important;
+    flex-direction:column !important;
+    height:100dvh !important;
+    box-sizing:border-box;
+    padding:18px 14px 14px !important;
+    background:var(--panneau) !important;
+    border-right:1px solid var(--bordure) !important;
+    overflow:hidden !important;
+}
+
+.sidebar-top {
+    flex-shrink:0;
+    padding:4px 8px 18px !important;
+}
+
+.sidebar-top .logo {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:23px;
+    font-weight:800;
+}
+
+.sidebar-subtitle {
+    margin-top:10px;
+    font-size:10px !important;
+    letter-spacing:1.5px;
+}
+
+.sidebar-search {
+    flex-shrink:0;
+    border-radius:14px !important;
+    margin-bottom:16px !important;
+}
+
+.sidebar-label,
+.history-heading {
+    flex-shrink:0;
+    font-size:10px !important;
+    letter-spacing:1.4px !important;
+    font-weight:800;
+}
+
+.sidebar-links {
+    flex-shrink:0;
+    gap:5px !important;
+    margin-bottom:14px !important;
+}
+
+.sidebar-link {
+    padding:12px !important;
+    border-radius:12px !important;
+    font-size:14px !important;
+    transition:background .2s, transform .2s;
+}
+
+.sidebar-link:hover,
+.history-item:hover {
+    background:rgba(118,85,255,.12) !important;
+}
+
+.history-heading {
+    border-top:1px solid var(--bordure);
+    padding:19px 10px 10px !important;
+    margin-top:3px !important;
+}
+
+#historique {
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    padding:3px 2px 12px !important;
+    scrollbar-width:thin;
+    scrollbar-color:var(--accent) transparent;
+}
+
+#historique::-webkit-scrollbar {
+    width:5px;
+}
+
+#historique::-webkit-scrollbar-thumb {
+    background:var(--accent);
+    border-radius:10px;
+}
+
+.history-item {
+    display:flex !important;
+    align-items:center !important;
+    min-height:43px;
+    padding:10px 11px !important;
+    margin:3px 0 !important;
+    border-radius:11px !important;
+    font-size:13px !important;
+    transition:background .2s;
+}
+
+.history-item small {
+    opacity:.65;
+}
+
+.history-item button {
+    flex-shrink:0;
+    opacity:.65;
+}
+
+.history-item button:hover {
+    opacity:1;
+    color:#ff647c !important;
+}
+
+.bottom {
+    flex-shrink:0;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:7px !important;
+    margin-top:auto !important;
+    padding-top:12px !important;
+    border-top:1px solid var(--bordure);
+}
+
+.sidebar-new-chat {
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    width:100% !important;
+    min-height:49px;
+    margin:0 0 8px !important;
+    border:0 !important;
+    border-radius:15px !important;
+    background:linear-gradient(110deg,#7655ff,#168fff,#00bde8) !important;
+    color:white !important;
+    font-size:15px !important;
+    font-weight:750 !important;
+    box-shadow:0 5px 20px rgba(70,110,255,.22);
+}
+
+.sidebar-new-chat:hover {
+    filter:brightness(1.12);
+    transform:translateY(-1px);
+}
+
+.profile-card {
+    margin-bottom:3px !important;
+    border:1px solid var(--bordure);
+    background:var(--fond) !important;
+    border-radius:14px !important;
+}
+
+.bottom > button:not(.sidebar-new-chat) {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:11px 12px;
+    border:0;
+    border-radius:11px;
+    background:transparent;
+    color:var(--texte);
+    text-align:left;
+    cursor:pointer;
+}
+
+.bottom > button:not(.sidebar-new-chat):hover {
+    background:rgba(118,85,255,.12);
+}
+
+@media(max-width:700px) {
+    .sidebar {
+        width:min(85vw,310px) !important;
+        max-width:310px;
+    }
+
+    .history-item {
+        min-height:46px;
+        font-size:14px !important;
+    }
+}
+
+
+
+/* CORRECTION HISTORIQUE NEXORA */
+
+.sidebar {
+    position:fixed !important;
+    top:0 !important;
+    bottom:0 !important;
+    left:0;
+    width:270px !important;
+    height:100vh !important;
+    height:100dvh !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+    padding:14px 12px !important;
+}
+
+.sidebar-top,
+.sidebar-search,
+.sidebar-label,
+.sidebar-links,
+.history-heading,
+.bottom {
+    flex-shrink:0 !important;
+}
+
+.sidebar-links {
+    margin-bottom:8px !important;
+}
+
+.history-heading {
+    margin-top:5px !important;
+    padding:12px 10px !important;
+}
+
+#historique {
+    display:block !important;
+    flex:1 1 0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    padding:4px 3px 15px !important;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+}
+
+#historique .history-item {
+    display:flex !important;
+    width:100%;
+    min-height:48px;
+    box-sizing:border-box;
+    margin:3px 0 !important;
+    padding:10px !important;
+}
+
+.bottom {
+    margin-top:0 !important;
+    padding-top:10px !important;
+    background:var(--panneau);
+}
+
+.sidebar-new-chat {
+    flex-shrink:0 !important;
+    width:100% !important;
+}
+
+@media(max-width:700px) {
+    .sidebar {
+        left:-310px !important;
+        width:min(85vw,300px) !important;
+        transition:left .25s ease !important;
+    }
+
+    .sidebar.open {
+        left:0 !important;
+    }
+}
+
+
+/* NEXORA — GRAND HISTORIQUE MOBILE */
+@media (max-width:700px) {
+    .sidebar {
+        display:flex !important;
+        flex-direction:column !important;
+        height:100dvh !important;
+        overflow:hidden !important;
+    }
+
+    .sidebar-top {
+        padding-bottom:8px !important;
+        flex-shrink:0 !important;
+    }
+
+    .sidebar-search {
+        flex-shrink:0 !important;
+        margin-bottom:8px !important;
+    }
+
+    .sidebar-label,
+    .sidebar-links {
+        display:none !important;
+    }
+
+    .history-heading {
+        flex-shrink:0 !important;
+        margin-top:8px !important;
+        padding:14px 10px !important;
+    }
+
+    #historique {
+        display:block !important;
+        flex:1 1 0 !important;
+        min-height:0 !important;
+        height:auto !important;
+        max-height:none !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        padding:5px 3px 15px !important;
+        overscroll-behavior:contain;
+    }
+
+    #historique .history-item {
+        min-height:52px !important;
+        padding:13px !important;
+        margin:4px 0 !important;
+    }
+
+    .bottom {
+        flex-shrink:0 !important;
+        margin-top:0 !important;
+        padding-top:8px !important;
+    }
+}
+
+</style>
+
+
+<style id="nexora-thinking-chat">
+.nexora-thinking-message {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+}
+.nexora-thinking-symbol {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    color: #f4c477;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,196,119,.19), rgba(244,196,119,.02) 70%);
+    animation: nexoraSymbolPulse 1.7s ease-in-out infinite;
+}
+.nexora-thinking-symbol::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border: 1px solid rgba(244,196,119,.55);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: nexoraSymbolOrbit 2.4s linear infinite;
+}
+.nexora-thinking-symbol svg {
+    width: 21px;
+    height: 21px;
+    filter: drop-shadow(0 0 5px rgba(244,196,119,.9));
+}
+.nexora-thinking-label {
+    color: #e8d8bd;
+    letter-spacing: .2px;
+    animation: nexoraLabelGlow 1.7s ease-in-out infinite;
+}
+@keyframes nexoraSymbolPulse {
+    0%,100% { transform: scale(.94); filter: drop-shadow(0 0 2px rgba(244,196,119,.2)); }
+    50% { transform: scale(1.12); filter: drop-shadow(0 0 12px rgba(244,196,119,.65)); }
+}
+@keyframes nexoraSymbolOrbit {
+    to { transform: rotate(360deg); }
+}
+@keyframes nexoraLabelGlow {
+    0%,100% { opacity: .65; }
+    50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nexora-thinking-symbol,
+    .nexora-thinking-symbol::before,
+    .nexora-thinking-label { animation: none; }
+}
+</style>
+
+
+<style id="nexora-texte-images">
+/* CORRECTION AFFICHAGE TEXTE NEXORA */
+#chat .message.bot {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-align: left;
+}
+
+#chat .message.bot .reponse-progressive {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: normal;
+    box-sizing: border-box;
+}
+
+#chat .message.bot .image-generee {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+</style>
+
 </head>
+
 <body>
+
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-top">
+        <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="NEXORA">
+<rect x="1" y="1" width="46" height="46" rx="13" fill="#111318"/>
+<path d="M24 3 L5 14 L5 24" fill="none" stroke="#F28C28" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M5 24 L5 34 L24 45 L43 34" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M43 34 L43 14 L24 3" fill="none" stroke="#009A44" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M14 33 V15 L34 33 V15" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+            <span>NEXORA <small>AI</small></span>
+        </div>
+        <div class="sidebar-subtitle">TON ESPACE INTELLIGENT</div>
+    </div>
+
+    <div class="sidebar-search">
+        <span>⌕</span>
+        <input id="recherche-historique" type="search" placeholder="Rechercher..." oninput="filtrerHistorique(this.value)">
+        <kbd>⌕</kbd>
+    </div>
+
+    <div class="sidebar-label">ESPACE DE TRAVAIL</div>
+
+    <nav class="sidebar-links">
+        <button class="sidebar-link" onclick="proposer('Génère une image selon ma description')">
+            <span class="link-icon">✧</span><span>Images</span>
+        </button>
+        <button class="sidebar-link" onclick="document.getElementById('file-input').click()">
+            <span class="link-icon">▧</span><span>Bibliothèque</span>
+        </button>
+        <button class="sidebar-link" onclick="ouvrirRaccourci('Projets')">
+            <span class="link-icon">▦</span><span>Projets</span>
+            <span class="coming-soon">Bientôt</span>
+        </button>
+        <button class="sidebar-link" onclick="ouvrirRaccourci('Planifiées')">
+            <span class="link-icon">◷</span><span>Planifiées</span>
+            <span class="coming-soon">Bientôt</span>
+        </button>
+        <button class="sidebar-link" onclick="ouvrirRaccourci('Plugins')">
+            <span class="link-icon">⌘</span><span>Plugins</span>
+            <span class="coming-soon">Bientôt</span>
+        </button>
+    </nav>
+
+    <div class="history-heading">
+        <span>TES DISCUSSIONS</span>
+        <span class="history-dot"></span>
+    </div>
+
+    <div id="historique"></div>
+
+    <div class="bottom">
+        <button class="new sidebar-new-chat" onclick="nouvelleDiscussion()">
+            <span class="shortcut-icon">＋</span>
+            <span>Nouveau chat</span>
+        </button>
+
+        <div class="profile-card">
+            <div class="profile-avatar" style="background:transparent;padding:0;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%" role="img" aria-label="NEXORA">
+<rect x="1" y="1" width="46" height="46" rx="13" fill="#111318"/>
+<path d="M24 3 L5 14 L5 24" fill="none" stroke="#F28C28" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M5 24 L5 34 L24 45 L43 34" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M43 34 L43 14 L24 3" fill="none" stroke="#009A44" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M14 33 V15 L34 33 V15" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+            <div class="profile-info">
+                <strong>NEXORA</strong>
+                <small>Assistant IA personnel</small>
+            </div>
+        </div>
+        <button onclick="ouvrirParametres()">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.1h-2.6v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.4v-2.6h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.1H15v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0 .3 1.9 1.7 1.7 0 0 0 1.5 1h.1V14h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+            Paramètres
+        </button>
+    </div>
+</aside>
+
+
+<main class="main">
+
 <header>
-<h2>💎 NEXORA AI</h2>
-<p>Ton assistant intelligent</p>
+<button class="menu" onclick="menuMobile()" aria-label="Ouvrir le menu">
+<svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+</button>
 </header>
+
 <div id="chat">
-<div class="message bot">Bonjour ! Je suis NEXORA AI. Comment puis-je t'aider aujourd'hui ?</div>
+<div class="welcome" id="welcome">
+<div class="orb" style="background:transparent;box-shadow:none;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%" role="img" aria-label="NEXORA">
+<rect x="1" y="1" width="46" height="46" rx="13" fill="#111318"/>
+<path d="M24 3 L5 14 L5 24" fill="none" stroke="#F28C28" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M5 24 L5 34 L24 45 L43 34" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M43 34 L43 14 L24 3" fill="none" stroke="#009A44" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M14 33 V15 L34 33 V15" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+<h1>Bienvenue sur NEXORA</h1>
+<p>Ton intelligence artificielle personnelle.<br>
+Que souhaites-tu découvrir aujourd'hui ?</p>
+
+
 </div>
+</div>
+
 <div id="zone">
-<textarea id="question" placeholder="Écris ton message..."></textarea>
-<button id="bouton" onclick="envoyer()">➤</button>
+
+<input id="camera-input" type="file" accept="image/*"
+capture="environment" hidden onchange="envoyerPhoto(this)">
+
+<input id="gallery-input" type="file" accept="image/*"
+hidden onchange="envoyerPhoto(this)">
+
+<input id="file-input" type="file" accept=".pdf,.xlsx,.xlsm"
+hidden onchange="envoyerFichier(this)">
+
+<div class="attach-wrap">
+<button type="button" class="photo-btn" aria-label="Ajouter une pièce jointe" onclick="document.getElementById('menu-ajout').classList.toggle('ouvert')"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<div id="menu-ajout">
+<button type="button" onclick="document.getElementById('camera-input').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4a2 2 0 0 1 2 2v10H2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="3"/></svg> Appareil photo</button>
+<button type="button" onclick="document.getElementById('gallery-input').click()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg> Galerie</button>
+<button type="button" onclick="document.getElementById('file-input').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg> PDF / Excel</button>
+<div class="menu-separator">OUTILS NEXORA</div>
+<button type="button" onclick="fermerMenuEtProposer('Explique-moi quelque chose de nouveau')">✧　Apprendre quelque chose</button>
+<button type="button" onclick="fermerMenuEtProposer('Aide-moi à créer une application')">▣　Créer une application</button>
+<button type="button" onclick="fermerMenuEtProposer('Donne-moi une idée de projet')">✳　Trouver une idée</button>
+<button type="button" onclick="fermerMenuEtProposer('Génère une image futuriste')">▧　Générer une image</button>
+<button type="button" onclick="ouvrirCreateurVideo()">🎬　Créer une vidéo</button>
+
 </div>
+</div>
+
+<div class="input-box">
+<textarea id="question" placeholder="Écris à NEXORA AI..." rows="1"></textarea>
+</div>
+
+<button type="button" id="bouton-vocal" onclick="basculerVocal()" title="Mode vocal"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg></button>
+<button class="send" id="bouton" onclick="envoyer()" aria-label="Envoyer"><svg class="ico send-icon" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg></button>
+</div>
+
+<div class="note">NEXORA AI peut parfois faire des erreurs. Vérifie les informations importantes.</div>
+</main>
+
+<div id="settings">
+<div class="settings-panel">
+
+<div class="settings-header">
+    <button class="settings-back" onclick="fermerParametres()">‹</button>
+    <span class="settings-title">Paramètres</span>
+    <button class="settings-close" onclick="fermerParametres()">✕</button>
+</div>
+
+<div class="nexora-profile">
+    <div class="nexora-avatar"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%" role="img" aria-label="NEXORA">
+<rect x="1" y="1" width="46" height="46" rx="13" fill="#111318"/>
+<path d="M24 3 L5 14 L5 24" fill="none" stroke="#F28C28" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M5 24 L5 34 L24 45 L43 34" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M43 34 L43 14 L24 3" fill="none" stroke="#009A44" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M14 33 V15 L34 33 V15" fill="none" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div><span class="avatar-edit">✎</span>
+    </div>
+    <h2>NEXORA AI</h2>
+    <p>Votre intelligence, votre univers.</p>
+</div>
+
+<div class="nexora-search">
+    <span>⌕</span>
+    <input type="search" id="recherche-parametres"
+           placeholder="Rechercher dans les paramètres..."
+           oninput="rechercherParametres(this.value)">
+</div>
+
+
+    <div class="settings-layout">
+
+<nav class="settings-nav">
+
+    <div class="settings-group-title">MON NEXORA</div>
+
+    <button class="settings-tab"
+    onclick="changerSection('personnalisation',this)">
+        <span class="settings-icon">✧</span>
+        <span>Personnalisation</span><b>›</b>
+    </button>
+
+    <button class="settings-tab"
+    onclick="changerSection('intelligence',this)">
+        <span class="settings-icon">✳</span>
+        <span>Intelligence</span><b>›</b>
+    </button>
+
+    <button class="settings-tab"
+    onclick="changerSection('general',this)">
+        <span class="settings-icon">⚙</span>
+        <span>Général</span><b>›</b>
+    </button>
+
+    <div class="settings-group-title">PRÉFÉRENCES</div>
+
+    <button class="settings-tab"
+    onclick="changerSection('apparence',this)">
+        <span class="settings-icon">◐</span>
+        <span>Apparence</span><b>›</b>
+    </button>
+
+    <button class="settings-tab"
+    onclick="changerSection('donnees',this)">
+        <span class="settings-icon">▤</span>
+        <span>Conversations</span><b>›</b>
+    </button>
+
+    <div class="settings-group-title">COMPTE ET INFORMATIONS</div>
+
+    <button class="settings-tab"
+    onclick="changerSection('apropos',this)">
+        <span class="settings-icon">ⓘ</span>
+        <span>À propos de NEXORA</span><b>›</b>
+    </button>
+
+</nav>
+
+
+        <div class="settings-content">
+<button type="button" class="settings-mobile-back" onclick="retourRubriques()">‹ Retour aux rubriques</button>
+
+            <section class="settings-section" id="section-general">
+                <h3>Général</h3>
+                <p class="settings-description">Préférences générales de l'application.</p>
+                <div class="settings-card">
+                    <span>Langue de l'interface</span>
+                    <strong>Français</strong>
+                </div>
+            </section>
+
+            <section class="settings-section" id="section-intelligence">
+                <h3>Intelligence</h3>
+                <p class="settings-description">Configure le comportement de NEXORA AI.</p>
+
+                <div class="settings-card" style="display:block">
+                    <label for="nexora-longueur">Longueur des réponses</label>
+                    <select id="nexora-longueur" onchange="sauvegarderParametres()">
+                        <option value="courte">Courte</option>
+                        <option value="normale">Normale</option>
+                        <option value="detaillee">Détaillée</option>
+                    </select>
+                </div>
+
+                <div class="settings-card" style="display:block">
+                    <label for="nexora-creativite">Créativité</label>
+                    <select id="nexora-creativite" onchange="sauvegarderParametres()">
+                        <option value="faible">Faible</option>
+                        <option value="normale">Normale</option>
+                        <option value="elevee">Élevée</option>
+                    </select>
+                </div>
+
+                <div class="settings-card" style="display:block">
+                    <label>
+                        <input type="checkbox" id="nexora-memoire"
+                               onchange="sauvegarderParametres()" checked>
+                        Utiliser les anciens messages pour répondre
+                    </label>
+                </div>
+                <p class="settings-description">Les préférences sont enregistrées sur cet appareil.</p>
+            </section>
+
+            <section class="settings-section" id="section-apparence">
+                <h3>Apparence</h3>
+                <p class="settings-description">Choisis l'apparence de NEXORA AI.</p>
+                <div class="settings-card">
+                    <span>Thème clair ou sombre</span>
+                    <button id="theme-settings-button" onclick="changerTheme()">🌙 Activer le mode sombre</button>
+                </div>
+            </section>
+
+            <section class="settings-section" id="section-personnalisation">
+                <h3>Personnalisation</h3>
+                <p class="settings-description">Les préférences de ton assistant.</p>
+                <div class="settings-card">
+                    <span>Assistant</span>
+                    <strong>NEXORA AI</strong>
+                </div>
+            </section>
+
+            <section class="settings-section" id="section-donnees">
+                <h3>Conversations</h3>
+                <p class="settings-description">Gestion de ton historique local.</p>
+                <div class="settings-card">
+                    <span>Discussions enregistrées sur cet appareil</span>
+                    <strong id="nombre-discussions">0</strong>
+                </div>
+            </section>
+
+            <section class="settings-section" id="section-apropos">
+                <h3>À propos</h3>
+                <p class="settings-description">Informations sur l'application.</p>
+                <div class="settings-card">
+                    <span>Application</span>
+                    <strong>NEXORA AI — Version 1.0</strong>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+</div>
+
 <script>
-async function envoyer(){
-let input=document.getElementById("question");
-let chat=document.getElementById("chat");
-let bouton=document.getElementById("bouton");
-let texte=input.value.trim();
-if(!texte)return;
-let utilisateur=document.createElement("div");
-utilisateur.className="message user";
-utilisateur.textContent=texte;
-chat.appendChild(utilisateur);
-input.value="";
-let attente=document.createElement("div");
-attente.className="message bot";
-attente.textContent="NEXORA réfléchit...";
-chat.appendChild(attente);
-bouton.disabled=true;
+const chat=document.getElementById("chat");
+const input=document.getElementById("question");
+let historique = [];
+try {
+    const donnees = JSON.parse(
+        localStorage.getItem("nexora_historique") || "[]"
+    );
+    historique = Array.isArray(donnees) ? donnees.filter(
+        item => item && typeof item === "object"
+        && Array.isArray(item.messages)
+    ) : [];
+} catch(e) {
+    historique = [];
+}
+let discussion=[];
+
+let parametresNexora = {
+    longueur: "normale",
+    creativite: "normale",
+    memoire: true
+};
+
+try {
+    const anciensParametres = JSON.parse(
+        localStorage.getItem("nexora_parametres") || "{}"
+    );
+    parametresNexora = {...parametresNexora, ...anciensParametres};
+} catch(e) {}
+
+function appliquerParametres(){
+    document.getElementById("nexora-longueur").value = parametresNexora.longueur;
+    document.getElementById("nexora-creativite").value = parametresNexora.creativite;
+    document.getElementById("nexora-memoire").checked = parametresNexora.memoire !== false;
+}
+
+function sauvegarderParametres(){
+    parametresNexora = {
+        longueur: document.getElementById("nexora-longueur").value,
+        creativite: document.getElementById("nexora-creativite").value,
+        memoire: document.getElementById("nexora-memoire").checked
+    };
+    localStorage.setItem("nexora_parametres", JSON.stringify(parametresNexora));
+}
+
+appliquerParametres();
+
+
+
+function proposer(texte){
+input.value=texte;
+envoyer();
+}
+
+let discussionActiveId = null;
+let filtreHistorique = "";
+
+function filtrerHistorique(texte){
+    filtreHistorique = texte.trim().toLowerCase();
+    afficherHistorique();
+}
+
+function correspondRecherche(item){
+    if(!filtreHistorique) return true;
+
+    const titre = (item.titre || "").toLowerCase();
+    const messages = (item.messages || [])
+        .map(m => (m.texte || "").toLowerCase())
+        .join(" ");
+
+    return titre.includes(filtreHistorique) ||
+           messages.includes(filtreHistorique);
+}
+
+function ouvrirRaccourci(nom){
+    menuMobileFermer();
+    alert(nom + " sera disponible dans une prochaine version de NEXORA AI.");
+}
+
+
+function afficherHistorique(){
+    const zone = document.getElementById("historique");
+    zone.innerHTML = "";
+
+    const idsAffiches = new Set();
+
+    historique.forEach((item, index) => {
+        if(!item) return;
+
+        if(item.id && idsAffiches.has(item.id)) return;
+        if(item.id) idsAffiches.add(item.id);
+
+        const titreTexte = item.titre || "Nouvelle discussion";
+
+        if(!correspondRecherche(item)) return;
+
+        const ligne = document.createElement("div");
+        ligne.className = "history-item";
+        ligne.style.display = "flex";
+        ligne.style.alignItems = "center";
+        ligne.style.justifyContent = "space-between";
+        ligne.style.gap = "8px";
+
+        const titre = document.createElement("span");
+        titre.textContent = titreTexte;
+        titre.title = titreTexte;
+        titre.style.flex = "1";
+        titre.style.overflow = "hidden";
+        titre.style.textOverflow = "ellipsis";
+        titre.style.whiteSpace = "nowrap";
+        titre.onclick = () => chargerDiscussion(index);
+
+        const date = document.createElement("small");
+        date.textContent = item.date
+            ? new Date(Number(item.date)).toLocaleDateString("fr-FR")
+            : "Ancienne discussion";
+        date.style.cssText = "display:block;font-size:10px;color:var(--secondaire);margin-top:3px";
+
+        const informations = document.createElement("div");
+        informations.style.cssText = "flex:1;min-width:0;overflow:hidden";
+        titre.style.display = "block";
+        informations.append(titre, date);
+        informations.onclick = () => chargerDiscussion(index);
+
+        const supprimer = document.createElement("button");
+        supprimer.type = "button";
+        supprimer.textContent = "×";
+        supprimer.title = "Supprimer cette discussion";
+        supprimer.style.cssText =
+            "border:0;background:transparent;color:var(--secondaire);font-size:19px;cursor:pointer;padding:2px 7px";
+
+        supprimer.onclick = (e) => {
+            e.stopPropagation();
+
+            historique.splice(index, 1);
+            localStorage.setItem(
+                "nexora_historique",
+                JSON.stringify(historique)
+            );
+
+            if(discussionActiveId === item.id){
+                discussion = [];
+                discussionActiveId = null;
+                nouvelleDiscussion();
+            }
+
+            afficherHistorique();
+        };
+
+        ligne.append(informations, supprimer);
+        zone.appendChild(ligne);
+    });
+}
+
+function sauvegarder(){
+    if(discussion.length === 0) return;
+
+    if(!discussionActiveId){
+        discussionActiveId = Date.now().toString();
+    }
+
+    const premierMessage = discussion.find(m => m.role === "user");
+    const titre = premierMessage?.texte?.trim().slice(0, 35) || "Nouvelle discussion";
+
+    const element = {
+        id: discussionActiveId,
+        titre: titre,
+        date: Date.now(),
+        messages: JSON.parse(JSON.stringify(discussion))
+    };
+
+    const index = historique.findIndex(item => item.id === discussionActiveId);
+
+    if(index !== -1){
+        historique[index] = element;
+    }else{
+        historique.unshift(element);
+    }
+
+    const uniques = new Map();
+
+    historique.forEach(item => {
+        if(item && item.id){
+            const ancien = uniques.get(item.id);
+            if(ancien){
+                item.messages = [
+                    ...(ancien.messages || []),
+                    ...(item.messages || [])
+                ];
+            }
+            uniques.set(item.id, item);
+        }
+    });
+
+    historique = Array.from(uniques.values())
+        .sort((a, b) => {
+            const dateA = Number(a.date || a.id || 0);
+            const dateB = Number(b.date || b.id || 0);
+            return dateB - dateA;
+        })
+        .slice(0, 200);
+
+    localStorage.setItem("nexora_historique", JSON.stringify(historique));
+    afficherHistorique();
+}
+
+function changerTheme(){
+    const sombre = !document.body.classList.contains("dark-theme");
+    document.body.classList.toggle("dark-theme", sombre);
+    localStorage.setItem("nexora_theme", sombre ? "sombre" : "clair");
+
+    const bouton = document.getElementById("theme-toggle");
+    if(bouton) bouton.textContent = sombre ? "☀️" : "🌙";
+
+    const boutonParametres = document.getElementById("theme-settings-button");
+    if(boutonParametres) {
+        boutonParametres.textContent = sombre ? "☀️ Activer le mode clair" : "🌙 Activer le mode sombre";
+    }
+}
+
+function initialiserTheme(){
+    const sombre = localStorage.getItem("nexora_theme") === "sombre";
+    document.body.classList.toggle("dark-theme", sombre);
+
+    const bouton = document.getElementById("theme-toggle");
+    if(bouton) bouton.textContent = sombre ? "☀️" : "🌙";
+
+    const boutonParametres = document.getElementById("theme-settings-button");
+    if(boutonParametres) {
+        boutonParametres.textContent = sombre ? "☀️ Activer le mode clair" : "🌙 Activer le mode sombre";
+    }
+}
+
+initialiserTheme();
+afficherHistorique();
+
+
+function fermerMenuEtProposer(texte){
+document.getElementById('menu-ajout').classList.remove('ouvert');
+proposer(texte);
+}
+function nouvelleDiscussion(){
+sauvegarder();
+discussion=[];
+discussionActiveId=null;
+chat.innerHTML=`
+<div class="welcome" id="welcome">
+<div class="orb"><svg viewBox="0 0 100 100"><path d="M25 75V25L75 75V25" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg></div>
+<h1>Bienvenue sur NEXORA</h1>
+<p>Ton intelligence artificielle personnelle.<br>Que souhaites-tu découvrir aujourd'hui ?</p>
+
+</div>`;
+}
+
+function chargerDiscussion(index){
+if(!historique[index]) return;
+
+const element = historique[index];
+if(!element.id) element.id = Date.now().toString();
+
+discussionActiveId = element.id;
+discussion = Array.isArray(element.messages) ? element.messages : [];
+
+chat.innerHTML = "";
+discussion.forEach(m => afficherMessage(m.texte, m.role, m.image));
+
+localStorage.setItem("nexora_historique", JSON.stringify(historique));
+menuMobileFermer();
+}
+
+function afficherMessage(texte,role,image=null){
+const div=document.createElement("div");
+div.className="message "+role;
+div.textContent=texte;
+if(image){
+const img=document.createElement("img");
+img.src=image;
+img.className="image-generee";
+div.appendChild(img);
+}
+chat.appendChild(div);
 chat.scrollTop=chat.scrollHeight;
+return div;
+}
+
+
+function afficherAttente(texte){
+    const div = afficherMessage("", "bot");
+    div.classList.add("nexora-thinking-message");
+
+    const symbole = document.createElement("span");
+    symbole.className = "nexora-thinking-symbol";
+    symbole.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M25 75V25L75 75V25" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    const label = document.createElement("span");
+    label.className = "nexora-thinking-label";
+    label.textContent = texte;
+
+    div.appendChild(symbole);
+    div.appendChild(label);
+    return div;
+}
+
+
+async function afficherTexteProgressif(element, texte){
+    // Supprimer entièrement le message "NEXORA réfléchit"
+    element.replaceChildren();
+
+    const sortie = document.createElement("span");
+    sortie.className = "reponse-progressive";
+    element.appendChild(sortie);
+
+    const reduire = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const vitesse = reduire ? 0 : 5;
+    const taille = 4;
+
+    for(let i = 0; i < texte.length; i += taille){
+        sortie.textContent += texte.slice(i, i + taille);
+        chat.scrollTop = chat.scrollHeight;
+
+        if(vitesse){
+            await new Promise(resolve => setTimeout(resolve, vitesse));
+        }
+    }
+}
+
+async function envoyer(){
+const texte=input.value.trim();
+const bouton=document.getElementById("bouton");
+if(!texte||bouton.disabled)return;
+
+document.getElementById("welcome")?.remove();
+
+discussion.push({texte,role:"user"});
+afficherMessage(texte,"user");
+input.value="";
+input.style.height="auto";
+
+const attente=afficherAttente("NEXORA réfléchit");
+bouton.disabled=true;
+
 try{
-let resultat=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:texte})});
-if(!resultat.ok)throw new Error("Serveur indisponible");
-let donnees=await resultat.json();
-attente.textContent=donnees.response||"Aucune réponse reçue.";
-}catch(erreur){
-attente.textContent="Erreur de connexion. Réessaie.";
+const resultat=await fetch("/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+message:texte,
+historique:parametresNexora.memoire ? discussion.slice(0,-1).slice(-12) : [],
+parametres:parametresNexora
+})
+});
+
+if(!resultat.ok)throw new Error("Réponse serveur : "+resultat.status);
+
+const donnees=await resultat.json();
+await afficherTexteProgressif(attente, donnees.response||"Aucune réponse reçue.");
+
+if(donnees.image){
+const img=document.createElement("img");
+img.src=donnees.image;
+img.className="image-generee";
+img.alt="Image générée par NEXORA AI";
+img.style.cursor="zoom-in";
+img.onclick=()=>window.open(img.src, "_blank");
+
+const telecharger=document.createElement("a");
+telecharger.href=donnees.image;
+telecharger.download="NEXORA-image.jpg";
+telecharger.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></svg><span>Télécharger</span>';
+telecharger.className="download-image";
+
+attente.appendChild(img);
+attente.appendChild(telecharger);
+}
+
+discussion.push({texte:donnees.response||"",role:"bot",image:donnees.image||null});
+if(modeVocalActif && donnees.response) lireReponseVocale(donnees.response);
+sauvegarder();
+
+}catch(e){
+attente.textContent="Erreur de communication. Vérifie que le serveur NEXORA est démarré.";
 }
 bouton.disabled=false;
 chat.scrollTop=chat.scrollHeight;
 }
-document.getElementById("question").addEventListener("keydown",function(e){
-if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();envoyer();}
+
+
+
+/* ===== MODE VOCAL NEXORA AI ===== */
+let modeVocalActif = false;
+let reconnaissanceVocale = null;
+let vocalEnCours = false;
+
+function basculerVocal(){
+    const bouton = document.getElementById("bouton-vocal");
+    const Reconnaissance = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if(modeVocalActif){
+        modeVocalActif = false;
+        if(reconnaissanceVocale) reconnaissanceVocale.stop();
+        speechSynthesis.cancel();
+        vocalEnCours = false;
+        bouton.classList.remove("ecoute-active");
+        bouton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg>';
+        return;
+    }
+
+    if(!Reconnaissance){
+        alert("La reconnaissance vocale n'est pas disponible dans ce navigateur. Essaie avec Google Chrome.");
+        return;
+    }
+
+    reconnaissanceVocale = new Reconnaissance();
+    reconnaissanceVocale.lang = "fr-FR";
+    reconnaissanceVocale.continuous = true;
+    reconnaissanceVocale.interimResults = false;
+
+    reconnaissanceVocale.onresult = function(event){
+        const dernier = event.results[event.results.length - 1];
+
+        if(!dernier.isFinal || vocalEnCours) return;
+
+        const texte = dernier[0].transcript.trim();
+        if(!texte) return;
+
+        vocalEnCours = true;
+        reconnaissanceVocale.stop();
+
+        document.getElementById("question").value = texte;
+        envoyer();
+    };
+
+    reconnaissanceVocale.onend = function(){
+        if(modeVocalActif && !vocalEnCours){
+            setTimeout(() => {
+                if(modeVocalActif && !vocalEnCours){
+                    try { reconnaissanceVocale.start(); } catch(e){}
+                }
+            }, 500);
+        }
+    };
+
+    reconnaissanceVocale.onerror = function(event){
+        if(event.error === "not-allowed"){
+            modeVocalActif = false;
+            bouton.classList.remove("ecoute-active");
+            bouton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg>';
+            alert("Autorise le microphone dans ton navigateur pour utiliser le mode vocal.");
+        }
+    };
+
+    modeVocalActif = true;
+    bouton.classList.add("ecoute-active");
+    bouton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg>';
+
+    try {
+        reconnaissanceVocale.start();
+    } catch(e) {
+        modeVocalActif = false;
+        bouton.classList.remove("ecoute-active");
+        bouton.innerHTML = '<svg class="ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg>';
+        alert("Impossible de démarrer le microphone.");
+    }
+}
+
+function lireReponseVocale(texte){
+    if(!modeVocalActif || !texte) return;
+
+    speechSynthesis.cancel();
+
+    const voix = new SpeechSynthesisUtterance(texte);
+    voix.lang = "fr-FR";
+    voix.rate = 1;
+    voix.pitch = 1;
+
+    voix.onend = function(){
+        vocalEnCours = false;
+        if(modeVocalActif && reconnaissanceVocale){
+            try { reconnaissanceVocale.start(); } catch(e){}
+        }
+    };
+
+    voix.onerror = function(){
+        vocalEnCours = false;
+    };
+
+    speechSynthesis.speak(voix);
+}
+
+async function envoyerPhoto(champ){
+    const fichier = champ.files[0];
+    if(!fichier) return;
+
+    if(!fichier.type.startsWith("image/")){
+        alert("Choisis une image valide.");
+        champ.value="";
+        return;
+    }
+
+    if(fichier.size > 8 * 1024 * 1024){
+        alert("Image trop volumineuse : 8 Mo maximum.");
+        champ.value="";
+        return;
+    }
+
+    const bouton = document.getElementById("bouton");
+    if(bouton.disabled){
+        champ.value="";
+        return;
+    }
+
+    const texte = input.value.trim() || "Aide-moi à comprendre et résoudre cet exercice étape par étape.";
+
+    document.getElementById("welcome")?.remove();
+
+    discussion.push({texte:"Photo : "+fichier.name,role:"user"});
+    afficherMessage("📷 Photo envoyée : "+fichier.name,"user");
+
+    input.value="";
+    const attente = afficherAttente("NEXORA analyse ta photo");
+    bouton.disabled=true;
+
+    try{
+        const formulaire = new FormData();
+        formulaire.append("photo",fichier);
+        formulaire.append("message",texte);
+
+        const resultat = await fetch("/chat",{
+            method:"POST",
+            body:formulaire
+        });
+
+        const donnees = await resultat.json();
+
+        if(!resultat.ok) throw new Error(donnees.response || "Erreur serveur");
+
+        attente.textContent = donnees.response || "Aucune réponse reçue.";
+
+        discussion.push({
+            texte:donnees.response || "",
+            role:"bot"
+        });
+
+        sauvegarder();
+
+    }catch(e){
+        attente.textContent = e.message || "Impossible d'analyser la photo.";
+    }finally{
+        bouton.disabled=false;
+        champ.value="";
+        chat.scrollTop=chat.scrollHeight;
+    }
+}
+
+
+async function envoyerFichier(champ){
+    const fichier = champ.files[0];
+    if(!fichier) return;
+
+    const nom = fichier.name.toLowerCase();
+
+    if(!nom.endsWith(".pdf") &&
+       !nom.endsWith(".xlsx") &&
+       !nom.endsWith(".xlsm")){
+        alert("Choisis un fichier PDF ou Excel.");
+        champ.value="";
+        return;
+    }
+
+    if(fichier.size > 8 * 1024 * 1024){
+        alert("Fichier trop volumineux : 8 Mo maximum.");
+        champ.value="";
+        return;
+    }
+
+    const bouton = document.getElementById("bouton");
+    if(bouton.disabled){
+        champ.value="";
+        return;
+    }
+
+    const texte = input.value.trim() || "Analyse ce document et explique-moi son contenu.";
+
+    document.getElementById("welcome")?.remove();
+    afficherMessage("📎 Fichier envoyé : " + fichier.name, "user");
+
+    input.value="";
+    const attente = afficherAttente("NEXORA lit ton document");
+    bouton.disabled=true;
+
+    try{
+        const formulaire = new FormData();
+        formulaire.append("fichier", fichier);
+        formulaire.append("message", texte);
+
+        const resultat = await fetch("/chat", {
+            method:"POST",
+            body:formulaire
+        });
+
+        const donnees = await resultat.json();
+
+        if(!resultat.ok) throw new Error(donnees.response || "Erreur serveur");
+
+        attente.textContent = donnees.response || "Aucune réponse reçue.";
+
+        discussion.push({texte:"Fichier : "+fichier.name, role:"user"});
+        discussion.push({texte:donnees.response || "", role:"bot"});
+        sauvegarder();
+
+    }catch(e){
+        attente.textContent = e.message || "Impossible de lire le document.";
+    }finally{
+        bouton.disabled=false;
+        champ.value="";
+        chat.scrollTop=chat.scrollHeight;
+    }
+}
+
+function ouvrirParametres(){
+    const fenetre = document.getElementById("settings");
+    if(!fenetre) return;
+
+    fenetre.classList.remove("nexora-mobile-section-open");
+    fenetre.style.display = "flex";
+
+    const compteur = document.getElementById("nombre-discussions");
+    if(compteur) compteur.textContent = historique.length;
+
+    const premierOnglet = fenetre.querySelector(".settings-tab");
+    const correspondance = premierOnglet?.getAttribute("onclick")?.match(/changerSection\('([^']+)'/);
+    const premiereSection = correspondance
+        ? document.getElementById("section-" + correspondance[1])
+        : null;
+
+    document.querySelectorAll("#settings .settings-section").forEach(section => {
+        section.classList.toggle("active", section === premiereSection);
+    });
+
+    document.querySelectorAll("#settings .settings-tab").forEach(tab => {
+        tab.classList.toggle("active", tab === premierOnglet);
+    });
+}
+
+function fermerParametres(){
+    const fenetre = document.getElementById("settings");
+    if(fenetre) fenetre.style.display = "none";
+}
+
+function changerSection(nom, bouton){
+    const cible = document.getElementById("section-" + nom);
+    const fenetre = document.getElementById("settings");
+    if(!cible || !fenetre) return;
+
+    document.querySelectorAll("#settings .settings-section").forEach(section => {
+        section.classList.toggle("active", section === cible);
+    });
+
+    document.querySelectorAll("#settings .settings-tab").forEach(tab => {
+        tab.classList.toggle("active", tab === bouton);
+    });
+
+    if(window.matchMedia("(max-width: 699px)").matches){
+        fenetre.classList.add("nexora-mobile-section-open");
+    }
+}
+
+function retourRubriques(){
+    const fenetre = document.getElementById("settings");
+    if(!fenetre) return;
+
+    fenetre.classList.remove("nexora-mobile-section-open");
+
+    document.querySelectorAll("#settings .settings-section").forEach(section => {
+        section.classList.remove("active");
+    });
+
+    document.querySelectorAll("#settings .settings-tab").forEach(tab => {
+        tab.classList.remove("active");
+    });
+}
+
+document.getElementById("settings").addEventListener("click", function(e){
+    if(e.target === this) fermerParametres();
 });
+
+document.addEventListener("keydown", function(e){
+    if(e.key === "Escape") fermerParametres();
+});
+
+function menuMobile(){
+document.getElementById("sidebar").classList.toggle("open");
+}
+
+document.addEventListener("click", function(e){
+    const sidebar = document.getElementById("sidebar");
+    const bouton = document.querySelector(".menu");
+
+    if(sidebar && sidebar.classList.contains("open")
+       && !sidebar.contains(e.target)
+       && bouton && !bouton.contains(e.target)){
+        sidebar.classList.remove("open");
+    }
+});
+
+function menuMobileFermer(){
+document.getElementById("sidebar").classList.remove("open");
+}
+
+input.addEventListener("input",()=>{
+input.style.height="auto";
+input.style.height=Math.min(input.scrollHeight,120)+"px";
+});
+
+input.addEventListener("keydown",e=>{
+if(e.key==="Enter"&&!e.shiftKey){
+e.preventDefault();
+envoyer();
+}
+});
+
+afficherHistorique();
+
+
+function rechercherParametres(texte) {
+    const recherche = texte.trim().toLowerCase();
+
+    document.querySelectorAll("#settings .settings-tab").forEach(bouton => {
+        bouton.style.display =
+            bouton.textContent.toLowerCase().includes(recherche)
+            ? "flex" : "none";
+    });
+
+    document.querySelectorAll("#settings .settings-group-title").forEach(titre => {
+        let suivant = titre.nextElementSibling;
+        let visible = false;
+
+        while (suivant && !suivant.classList.contains("settings-group-title")) {
+            if (suivant.classList.contains("settings-tab") &&
+                suivant.style.display !== "none") {
+                visible = true;
+            }
+            suivant = suivant.nextElementSibling;
+        }
+
+        titre.style.display = visible ? "block" : "none";
+    });
+}
+
 </script>
+
+<style>
+/* ===== NEXORA PREMIUM — ANIMATIONS ET FINITIONS ===== */
+
+:root {
+    --nexora-violet: #7957ff;
+    --nexora-bleu: #19baff;
+}
+
+.message {
+    box-sizing: border-box;
+    animation: nexoraMessage .38s cubic-bezier(.2,.75,.25,1) both;
+    will-change: opacity, transform;
+}
+
+.message.user {
+    background: linear-gradient(120deg,#7655ff,#268fff) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,.13);
+    box-shadow: 0 7px 24px rgba(90,90,255,.19);
+}
+
+.message.bot {
+    animation-duration: .45s;
+}
+
+@keyframes nexoraMessage {
+    from {opacity:0; transform:translateY(13px) scale(.985);}
+    to {opacity:1; transform:translateY(0) scale(1);}
+}
+
+.typing-indicator {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-left:10px;
+    vertical-align:middle;
+}
+
+.typing-indicator span {
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#7957ff,#19baff);
+    animation:nexoraThinking .9s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2){animation-delay:.15s;}
+.typing-indicator span:nth-child(3){animation-delay:.3s;}
+
+@keyframes nexoraThinking {
+    0%,60%,100% {transform:translateY(0);opacity:.45;}
+    30% {transform:translateY(-6px);opacity:1;}
+}
+
+.reponse-progressive {
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
+
+.image-generee {
+    display:block;
+    max-width:100%;
+    height:auto;
+    border-radius:18px;
+    animation:nexoraImage .65s cubic-bezier(.2,.7,.2,1) both;
+    box-shadow:0 12px 35px rgba(80,90,180,.17);
+}
+
+@keyframes nexoraImage {
+    from {opacity:0;transform:translateY(15px) scale(.97);filter:blur(5px);}
+    to {opacity:1;transform:translateY(0) scale(1);filter:blur(0);}
+}
+
+.download-image {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    min-height:43px;
+    margin-top:12px;
+    padding:10px 17px;
+    border:1px solid var(--bordure);
+    border-radius:12px;
+    background:linear-gradient(110deg,rgba(121,87,255,.13),rgba(25,186,255,.12));
+    color:var(--texte);
+    text-decoration:none;
+    transition:transform .2s ease,box-shadow .2s ease;
+}
+
+.download-image svg {
+    width:19px;
+    height:19px;
+}
+
+.download-image:hover {
+    transform:translateY(-2px);
+    box-shadow:0 7px 20px rgba(100,80,255,.15);
+}
+
+#settings {
+    background:rgba(7,10,24,.58);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+}
+
+#settings[style*="flex"] {
+    animation:nexoraOverlay .25s ease both;
+}
+
+.settings-panel {
+    border-radius:23px;
+    border:1px solid rgba(130,120,255,.22);
+    box-shadow:0 25px 90px rgba(0,0,0,.28),
+               0 0 35px rgba(110,80,255,.12);
+    animation:nexoraPanel .35s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes nexoraOverlay {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+@keyframes nexoraPanel {
+    from {opacity:0;transform:translateY(22px) scale(.96);}
+    to {opacity:1;transform:translateY(0) scale(1);}
+}
+
+.settings-tab {
+    transition:background .2s ease,color .2s ease,
+               transform .2s ease,border-color .2s ease;
+}
+
+.settings-tab:hover {
+    transform:translateX(3px);
+}
+
+.settings-close {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;
+    height:40px;
+    flex-shrink:0;
+    border:1px solid var(--bordure);
+    transition:transform .2s ease,background .2s ease;
+}
+
+.settings-close:hover {
+    transform:rotate(90deg);
+    background:rgba(121,87,255,.14);
+}
+
+button {
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+.send {
+    background:linear-gradient(135deg,#7957ff,#258fff) !important;
+    color:white !important;
+    border:0 !important;
+    box-shadow:0 5px 17px rgba(100,80,255,.23);
+}
+
+.send:hover:not(:disabled) {
+    transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(100,80,255,.32);
+}
+
+.send:disabled {
+    opacity:.55;
+    cursor:wait;
+}
+
+#bouton-vocal {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.send,#bouton-vocal,.photo-btn {
+    min-width:43px;
+    min-height:43px;
+    flex-shrink:0;
+}
+
+@media(max-width:700px) {
+    #settings {
+        padding:10px;
+        align-items:center;
+    }
+
+    .settings-panel {
+        width:100%;
+        max-width:100%;
+        height:min(88dvh,720px);
+        border-radius:19px;
+    }
+
+    .settings-header {
+        min-height:58px;
+    }
+
+    .settings-layout {
+        min-height:0;
+        overflow:hidden;
+    }
+
+    .settings-nav {
+        max-width:115px;
+        overflow-y:auto;
+    }
+
+    .settings-content {
+        min-width:0;
+        overflow-y:auto;
+    }
+
+    .settings-tab {
+        max-width:100%;
+        overflow-wrap:anywhere;
+    }
+
+    .send,#bouton-vocal,.photo-btn {
+        width:43px;
+        height:43px;
+        min-width:43px;
+        min-height:43px;
+    }
+
+    .message.user {
+        max-width:88%;
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .message,.image-generee,.settings-panel,
+    #settings,.typing-indicator span {
+        animation:none !important;
+        transition:none !important;
+    }
+}
+</style>
+
+
+<style id="nexora-black-premium">
+:root, body, body.dark-theme {
+    --fond:#050505 !important;
+    --panneau:#101010 !important;
+    --texte:#F5F5F5 !important;
+    --secondaire:#A5A5A5 !important;
+    --bordure:#292929 !important;
+    --message:#191919 !important;
+    --accent:#E5E5E5 !important;
+    --bleu:#E5E5E5 !important;
+}
+
+html, body {
+    background:#050505 !important;
+    color:#F5F5F5 !important;
+}
+
+.sidebar, .main, #chat, #settings,
+#settings .settings-panel,
+.settings-panel, .settings-content,
+.settings-nav, .profile-card,
+.settings-card, .settings-tab,
+.settings-section, .nexora-search,
+.sidebar-search, header {
+    background-color:#050505 !important;
+    color:#F5F5F5 !important;
+}
+
+.profile-card, .settings-card, .suggestion,
+.sidebar-link, .history-item,
+input, textarea, select {
+    background:#101010 !important;
+    color:#F5F5F5 !important;
+    border-color:#292929 !important;
+}
+
+.welcome h1, .settings-title,
+.settings-section h3, .profile-info strong {
+    color:#F5F5F5 !important;
+}
+
+.welcome p, .settings-description,
+.profile-info small {
+    color:#A5A5A5 !important;
+}
+
+.orb {
+    background:#050505 !important;
+    box-shadow:none !important;
+}
+
+#settings .nexora-avatar {
+    background:#101010 !important;
+    border-color:#292929 !important;
+}
+
+button {
+    color:#F5F5F5;
+}
+
+.sidebar-link:hover, .history-item:hover,
+.suggestion:hover, .bottom button:hover {
+    background:#202020 !important;
+}
+
+#settings .settings-panel {
+    background:#050505 !important;
+}
+</style>
+
+
+
+
+
+<style id="nexora-settings-black-premium-final">
+
+#settings,
+#settings * {
+    box-sizing:border-box !important;
+}
+
+#settings {
+    padding:10px !important;
+    background:rgba(0,0,0,.96) !important;
+}
+
+#settings .settings-panel {
+    width:100% !important;
+    max-width:650px !important;
+    min-height:0 !important;
+    margin:0 auto !important;
+    padding:16px !important;
+    border:1px solid #292929 !important;
+    border-radius:22px !important;
+    background:#090909 !important;
+}
+
+#settings .settings-header {
+    height:48px !important;
+    margin-bottom:14px !important;
+}
+
+#settings .settings-title {
+    font-size:20px !important;
+}
+
+#settings .nexora-profile {
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:14px !important;
+    min-height:0 !important;
+    padding:13px !important;
+    margin:0 0 14px !important;
+    text-align:left !important;
+    border:1px solid #292929 !important;
+    border-radius:16px !important;
+    background:#111 !important;
+}
+
+#settings .nexora-avatar {
+    position:relative !important;
+    display:block !important;
+    flex:0 0 64px !important;
+    width:64px !important;
+    min-width:64px !important;
+    height:64px !important;
+    min-height:64px !important;
+    margin:0 !important;
+    padding:0 !important;
+    aspect-ratio:1/1 !important;
+    overflow:hidden !important;
+    border-radius:15px !important;
+    background:#101010 !important;
+    border:1px solid #333 !important;
+    box-shadow:none !important;
+}
+
+#settings .nexora-avatar > div {
+    display:flex !important;
+    width:100% !important;
+    height:100% !important;
+    align-items:center !important;
+    justify-content:center !important;
+}
+
+#settings .nexora-avatar svg {
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    object-fit:contain !important;
+}
+
+#settings .avatar-edit {
+    display:none !important;
+}
+
+#settings .nexora-profile h2 {
+    margin:0 !important;
+    font-size:18px !important;
+}
+
+#settings .nexora-profile p {
+    margin:4px 0 0 !important;
+    font-size:12px !important;
+}
+
+#settings .nexora-search {
+    height:46px !important;
+    margin-bottom:14px !important;
+    border-radius:12px !important;
+    background:#111 !important;
+}
+
+#settings .settings-layout {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:14px !important;
+}
+
+#settings .settings-nav {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+    width:100% !important;
+    padding:12px !important;
+    border:1px solid #292929 !important;
+    border-radius:16px !important;
+    background:#0d0d0d !important;
+}
+
+#settings .settings-group-title {
+    grid-column:1/-1 !important;
+    margin:8px 0 3px !important;
+    padding-bottom:7px !important;
+    border-bottom:1px solid #292929 !important;
+    font-size:10px !important;
+    letter-spacing:1.3px !important;
+}
+
+#settings .settings-tab {
+    display:flex !important;
+    align-items:center !important;
+    min-width:0 !important;
+    min-height:49px !important;
+    padding:8px !important;
+    gap:7px !important;
+    border:1px solid #292929 !important;
+    border-radius:11px !important;
+    background:#171717 !important;
+    color:#eee !important;
+    font-size:12px !important;
+}
+
+#settings .settings-tab.active {
+    border-color:#b87932 !important;
+    background:#21180f !important;
+    box-shadow:inset 3px 0 #e58b32 !important;
+}
+
+#settings .settings-icon {
+    flex:0 0 25px !important;
+    width:25px !important;
+    height:25px !important;
+    border-radius:8px !important;
+    background:#29231d !important;
+    color:#e5a45f !important;
+    font-size:15px !important;
+}
+
+#settings .settings-tab b {
+    margin-left:auto !important;
+    font-size:15px !important;
+}
+
+#settings .settings-content {
+    padding:14px !important;
+    border:1px solid #292929 !important;
+    border-radius:16px !important;
+    background:#0d0d0d !important;
+}
+
+#settings .settings-card {
+    border:1px solid #292929 !important;
+    border-radius:13px !important;
+    background:#151515 !important;
+}
+
+#settings .settings-card select {
+    background:#090909 !important;
+    color:#fff !important;
+    border:1px solid #393939 !important;
+}
+
+@media(min-width:700px) {
+    #settings .settings-panel {
+        max-width:850px !important;
+        padding:22px !important;
+    }
+
+    #settings .settings-layout {
+        display:grid !important;
+        grid-template-columns:260px minmax(0,1fr) !important;
+        align-items:start !important;
+    }
+
+    #settings .settings-nav {
+        display:flex !important;
+        flex-direction:column !important;
+    }
+
+    #settings .settings-tab {
+        min-height:48px !important;
+    }
+}
+
+@media(max-width:380px) {
+    #settings .settings-tab {
+        font-size:11px !important;
+        padding:7px 5px !important;
+    }
+}
+
+</style>
+\n
+<style id="nexora-settings-navigation-fix">
+@media(max-width:699px){
+    #settings .settings-content{
+        display:none;
+        width:100%;
+        margin:0;
+        padding:18px;
+        background:#0d0d0d;
+        border:1px solid #292929;
+        border-radius:16px;
+    }
+
+    #settings .settings-content .settings-section{
+        display:none !important;
+    }
+
+    #settings .settings-content .settings-section.active{
+        display:block !important;
+    }
+
+    #settings .settings-mobile-back{
+        display:flex;
+        align-items:center;
+        gap:9px;
+        width:100%;
+        min-height:44px;
+        margin-bottom:18px;
+        padding:10px 13px;
+        border:1px solid #333;
+        border-radius:11px;
+        background:#191919;
+        color:#f5b36d;
+        font-size:14px;
+        font-weight:700;
+    }
+}
+
+@media(min-width:700px){
+    #settings .settings-mobile-back{
+        display:none !important;
+    }
+}
+</style>
+
+
+<style id="nexora-navigation-repair">
+@media(max-width:699px){
+    #settings .settings-layout{
+        display:block !important;
+    }
+    #settings .settings-nav{
+        display:grid !important;
+    }
+    #settings .settings-content{
+        display:none !important;
+        width:100% !important;
+    }
+    #settings.nexora-mobile-section-open .settings-nav{
+        display:none !important;
+    }
+    #settings.nexora-mobile-section-open .settings-content{
+        display:block !important;
+    }
+    #settings .settings-content .settings-section{
+        display:none !important;
+    }
+    #settings .settings-content .settings-section.active{
+        display:block !important;
+    }
+    #settings .settings-mobile-back{
+        display:flex !important;
+    }
+}
+</style>
+
+
+<script id="nexora-video-ui">
+function ouvrirCreateurVideo(){
+    document.getElementById('menu-ajout')?.classList.remove('ouvert');
+
+    if(document.getElementById('nexora-video-modal')){
+        document.getElementById('nexora-video-modal').style.display='flex';
+        return;
+    }
+
+    const style=document.createElement('style');
+    style.textContent=`
+    #nexora-video-modal{
+      position:fixed;inset:0;z-index:99999;
+      background:rgba(0,0,0,.82);display:flex;
+      align-items:center;justify-content:center;padding:16px;
+    }
+    #nexora-video-card{
+      width:100%;max-width:480px;max-height:90vh;overflow:auto;
+      background:#101010;color:#f5f5f5;border:1px solid #333;
+      border-radius:22px;padding:22px;
+      box-shadow:0 20px 70px #000;
+    }
+    #nexora-video-card h2{margin:0 0 8px;font-size:23px}
+    #nexora-video-card p{color:#aaa;font-size:13px}
+    #nexora-video-card label{display:block;margin:17px 0 7px;font-size:13px;color:#ccc}
+    #nexora-video-card textarea,#nexora-video-card select{
+      width:100%;box-sizing:border-box;background:#1b1b1b;
+      color:white;border:1px solid #383838;border-radius:12px;
+      padding:13px;font:inherit;
+    }
+    #nexora-video-card textarea{min-height:115px;resize:vertical}
+    #nexora-video-actions{display:flex;gap:10px;margin-top:20px}
+    #nexora-video-actions button{
+      flex:1;padding:13px;border-radius:12px;border:1px solid #444;
+      background:#222;color:white;font-weight:600;
+    }
+    #nexora-video-generate{
+      background:#d5a64a!important;color:#111!important;border:0!important;
+    }
+    #nexora-video-status{font-size:13px;margin-top:15px;white-space:pre-wrap}
+    #nexora-video-result video{width:100%;margin-top:15px;border-radius:13px}
+    #nexora-video-result a{display:block;color:#e7bd68;margin-top:12px}
+    `;
+    document.head.appendChild(style);
+
+    document.body.insertAdjacentHTML('beforeend',`
+    <div id="nexora-video-modal">
+      <div id="nexora-video-card">
+        <h2>🎬 Créer une vidéo</h2>
+        <p>Transforme ton idée en vidéo avec NEXORA AI.</p>
+
+        <label for="nexora-video-prompt">Décris la vidéo souhaitée</label>
+        <textarea id="nexora-video-prompt" maxlength="1000"
+        placeholder="Exemple : Une voiture futuriste traverse Abidjan la nuit, avec des lumières cinématographiques..."></textarea>
+
+        <label for="nexora-video-duration">Durée</label>
+        <select id="nexora-video-duration">
+          <option value="2">2 secondes</option>
+          <option value="5" selected>5 secondes</option>
+          <option value="8">8 secondes</option>
+        </select>
+
+        <label for="nexora-video-format">Format</label>
+        <select id="nexora-video-format">
+          <option value="paysage">Paysage (YouTube)</option>
+          <option value="portrait">Portrait (TikTok / Reels)</option>
+        </select>
+
+        <div id="nexora-video-status"></div>
+        <div id="nexora-video-result"></div>
+
+        <div id="nexora-video-actions">
+          <button type="button" onclick="fermerCreateurVideo()">Fermer</button>
+          <button type="button" id="nexora-video-generate"
+          onclick="lancerCreationVideo()">Créer la vidéo</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+function fermerCreateurVideo(){
+    const modal=document.getElementById('nexora-video-modal');
+    if(modal) modal.style.display='none';
+}
+
+async function lancerCreationVideo(){
+    const prompt=document.getElementById('nexora-video-prompt').value.trim();
+    const duree=Number(document.getElementById('nexora-video-duration').value);
+    const format=document.getElementById('nexora-video-format').value;
+    const status=document.getElementById('nexora-video-status');
+    const result=document.getElementById('nexora-video-result');
+    const bouton=document.getElementById('nexora-video-generate');
+
+    if(!prompt){
+        status.textContent="Décris d'abord la vidéo à créer.";
+        return;
+    }
+
+    bouton.disabled=true;
+    status.textContent="NEXORA prépare ta vidéo. Cela peut prendre plusieurs minutes...";
+    result.replaceChildren();
+
+    try{
+        const reponse=await fetch('/creer-video',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({prompt:prompt,duree:duree,format:format})
+        });
+
+        const donnees=await reponse.json();
+
+        if(!reponse.ok || donnees.error){
+            throw new Error(donnees.error || "La génération a échoué.");
+        }
+
+        status.textContent="Ta vidéo est prête !";
+
+        const video=document.createElement('video');
+        video.src=donnees.video;
+        video.controls=true;
+        video.playsInline=true;
+
+        const lien=document.createElement('a');
+        lien.href=donnees.video;
+        lien.download='NEXORA-video.mp4';
+        lien.textContent='↓ Télécharger la vidéo MP4';
+
+        result.append(video,lien);
+    }catch(erreur){
+        status.textContent="Erreur : "+erreur.message;
+    }finally{
+        bouton.disabled=false;
+    }
+}
+</script>
+
 </body>
 </html>
+
+
+
+<style id="nexora-premium-motion">
+
+/* Messages */
+.message {
+    animation: nexoraMessage .4s cubic-bezier(.16,1,.3,1) both;
+    transform-origin: bottom;
+}
+
+@keyframes nexoraMessage {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(.985);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* Réponse progressive */
+.reponse-progressive {
+    line-height: 1.75;
+}
+
+/* Paramètres */
+#settings[style*="flex"] .settings-panel {
+    animation: nexoraSettings .35s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes nexoraSettings {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Boutons */
+button, a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+    transform: scale(.96);
+}
+
+/* Images générées */
+.image-generee {
+    animation: nexoraImage .55s ease both;
+    border-radius: 16px;
+}
+
+@keyframes nexoraImage {
+    from {
+        opacity: 0;
+        transform: scale(.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Indicateur IA */
+.typing-indicator span {
+    animation: nexoraDots 1.2s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: .15s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: .3s;
+}
+
+@keyframes nexoraDots {
+    0%, 60%, 100% {
+        opacity: .35;
+        transform: translateY(0);
+    }
+    30% {
+        opacity: 1;
+        transform: translateY(-4px);
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    .message, .image-generee,
+    #settings[style*="flex"] .settings-panel {
+        animation: none !important;
+    }
+}
+
+
+
+/* ==================================
+   NEXORA PREMIUM SETTINGS
+================================== */
+
+#settings {
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:#000;
+    overflow-y:auto;
+    align-items:flex-start;
+    justify-content:center;
+    padding:0;
+    scrollbar-width:thin;
+}
+
+#settings .settings-panel {
+    width:100%;
+    max-width:760px;
+    min-height:100%;
+    margin:0 auto;
+    padding:20px 20px 45px;
+    box-sizing:border-box;
+    background:#000;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    color:#f5f5f5;
+    overflow:visible;
+}
+
+#settings .settings-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height:55px;
+    border:0;
+    margin-bottom:20px;
+}
+
+#settings .settings-title {
+    font-size:19px;
+    font-weight:650;
+    color:#fff;
+}
+
+#settings .settings-back,
+#settings .settings-close {
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    border:1px solid #303030;
+    background:#202020;
+    color:#fff;
+    font-size:29px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+#settings .settings-back {
+    font-size:35px;
+}
+
+#settings .nexora-profile {
+    text-align:center;
+    padding:10px 0 25px;
+}
+
+#settings .nexora-avatar {
+    position:relative;
+    width:116px;
+    height:116px;
+    margin:0 auto 22px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#16b89c,#087f85);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:47px;
+    font-weight:400;
+    color:#fff;
+    box-shadow:0 0 35px rgba(16,185,160,.13);
+}
+
+#settings .avatar-edit {
+    position:absolute;
+    right:-2px;
+    bottom:3px;
+    width:43px;
+    height:43px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#303030;
+    border:3px solid #000;
+    font-size:23px;
+}
+
+#settings .nexora-profile h2 {
+    margin:0;
+    font-size:27px;
+    font-weight:700;
+    color:white;
+}
+
+#settings .nexora-profile p {
+    margin:8px 0 0;
+    color:#929292;
+    font-size:14px;
+}
+
+#settings .nexora-search {
+    height:55px;
+    display:flex;
+    align-items:center;
+    gap:13px;
+    padding:0 17px;
+    margin:0 0 30px;
+    border-radius:30px;
+    background:#292929;
+    border:1px solid #393939;
+    box-sizing:border-box;
+}
+
+#settings .nexora-search span {
+    font-size:29px;
+    color:#aaa;
+}
+
+#settings .nexora-search input {
+    flex:1;
+    min-width:0;
+    background:transparent;
+    border:0;
+    outline:none;
+    color:white;
+    font-size:16px;
+}
+
+#settings .nexora-search input::placeholder {
+    color:#999;
+}
+
+#settings .settings-layout {
+    display:flex;
+    flex-direction:column;
+    gap:25px;
+}
+
+#settings .settings-nav {
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    background:transparent;
+    border:0;
+    padding:0;
+}
+
+#settings .settings-group-title {
+    color:#969696;
+    font-size:18px;
+    font-weight:500;
+    margin:28px 0 13px;
+    padding-left:3px;
+}
+
+#settings .settings-tab {
+    width:100%;
+    min-height:76px;
+    padding:13px 19px;
+    display:flex;
+    align-items:center;
+    gap:17px;
+    text-align:left;
+    background:#393939;
+    color:#f6f6f6;
+    border:0;
+    border-radius:6px;
+    font-size:18px;
+    font-weight:450;
+    cursor:pointer;
+    transition:background .2s, transform .2s;
+}
+
+#settings .settings-tab:first-of-type {
+    border-radius:25px 25px 6px 6px;
+}
+
+#settings .settings-tab:last-child {
+    border-radius:6px 6px 25px 25px;
+}
+
+#settings .settings-tab:hover {
+    background:#484848;
+}
+
+#settings .settings-tab.active {
+    background:#454545;
+    color:#fff;
+    border:0;
+}
+
+#settings .settings-icon {
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    color:#fff;
+    flex-shrink:0;
+}
+
+#settings .settings-tab b {
+    margin-left:auto;
+    font-size:25px;
+    font-weight:300;
+    color:#aaa;
+}
+
+#settings .settings-content {
+    width:100%;
+    padding:0;
+    min-width:0;
+}
+
+#settings .settings-section {
+    display:none;
+    animation:settingsAppear .3s ease both;
+}
+
+#settings .settings-section.active {
+    display:block;
+}
+
+#settings .settings-section h3 {
+    color:white;
+    font-size:24px;
+    margin:0 0 10px;
+}
+
+#settings .settings-description {
+    color:#999;
+    font-size:14px;
+    line-height:1.6;
+}
+
+#settings .settings-card {
+    background:#292929;
+    border:1px solid #3c3c3c;
+    border-radius:17px;
+    padding:20px;
+    margin:13px 0;
+    color:#fff;
+    transition:background .2s;
+    overflow-wrap:anywhere;
+}
+
+#settings .settings-card:hover {
+    background:#333;
+}
+
+#settings .settings-card span {
+    color:#bbb;
+}
+
+#settings .settings-card strong {
+    color:white;
+}
+
+#settings .settings-card select {
+    width:100%;
+    margin-top:13px;
+    padding:14px;
+    color:white;
+    background:#171717;
+    border:1px solid #444;
+    border-radius:12px;
+}
+
+#settings .settings-card button {
+    background:#343434;
+    color:white;
+    border:1px solid #505050;
+    border-radius:12px;
+    padding:12px 16px;
+}
+
+@keyframes settingsAppear {
+    from {
+        opacity:0;
+        transform:translateY(12px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@media(min-width:700px) {
+    #settings .settings-panel {
+        padding:30px 45px 55px;
+    }
+}
+
+@media(prefers-reduced-motion:reduce) {
+    #settings * {
+        animation:none !important;
+        transition:none !important;
+    }
+}
+
+
+
+/* ===== CORRECTION NEXORA SETTINGS MOBILE ===== */
+
+#settings,
+#settings * {
+    box-sizing: border-box;
+}
+
+#settings {
+    width:100%;
+    max-width:100vw;
+    overflow-x:hidden !important;
+}
+
+#settings .settings-panel {
+    width:100% !important;
+    max-width:760px !important;
+    min-width:0 !important;
+    padding:20px 18px 45px !important;
+    overflow-x:hidden !important;
+}
+
+#settings .settings-header {
+    width:100% !important;
+    background:transparent !important;
+    border:0 !important;
+    padding:0 !important;
+}
+
+#settings .settings-layout {
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    overflow:visible !important;
+}
+
+#settings .settings-nav {
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    flex:1 1 100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    overflow:visible !important;
+}
+
+#settings .settings-tab {
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    flex:0 0 auto !important;
+    box-sizing:border-box !important;
+    white-space:normal !important;
+    overflow:visible !important;
+}
+
+#settings .settings-tab span:not(.settings-icon) {
+    min-width:0;
+    flex:1;
+}
+
+#settings .settings-content {
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+}
+
+#settings .settings-card {
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+}
+
+#settings .nexora-avatar {
+    width:116px !important;
+    height:116px !important;
+    border-radius:50% !important;
+    background:linear-gradient(145deg,#16b89c,#087f85) !important;
+    border:1px solid rgba(255,255,255,.12);
+    font-size:43px !important;
+    font-weight:600 !important;
+    letter-spacing:1px;
+    overflow:visible !important;
+}
+
+#settings .avatar-edit {
+    border-radius:50% !important;
+    z-index:2;
+}
+
+#settings .settings-group-title {
+    width:100%;
+    overflow-wrap:normal;
+}
+
+@media(max-width:480px) {
+    #settings .settings-panel {
+        padding:15px 14px 35px !important;
+    }
+
+    #settings .settings-tab {
+        min-height:72px;
+        font-size:17px;
+        padding:12px 16px;
+    }
+
+    #settings .settings-group-title {
+        font-size:17px;
+        margin-top:24px;
+    }
+}
+
+</style>
+
+
+
+
+<style id="nexora-settings-final-override">
+
+/* FOND GENERAL */
+#settings,
+#settings * {
+    box-sizing:border-box !important;
+}
+
+#settings {
+    padding:10px !important;
+    background:rgba(0,0,0,.96) !important;
+}
+
+/* PANNEAU */
+#settings .settings-panel {
+    width:100% !important;
+    max-width:650px !important;
+    min-height:0 !important;
+    margin:0 auto !important;
+    padding:16px !important;
+    background:#090909 !important;
+    border:1px solid #292929 !important;
+    border-radius:22px !important;
+}
+
+/* PROFIL */
+#settings .nexora-profile {
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:13px !important;
+    padding:12px !important;
+    min-height:0 !important;
+    text-align:left !important;
+    background:#101010 !important;
+    border:1px solid #292929 !important;
+    border-radius:15px !important;
+}
+
+#settings .nexora-avatar {
+    display:block !important;
+    position:relative !important;
+    flex:0 0 58px !important;
+    width:58px !important;
+    min-width:58px !important;
+    height:58px !important;
+    min-height:58px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border-radius:13px !important;
+    overflow:hidden !important;
+    background:#101010 !important;
+    border:1px solid #333 !important;
+    box-shadow:none !important;
+}
+
+#settings .nexora-avatar > div {
+    width:100% !important;
+    height:100% !important;
+}
+
+#settings .nexora-avatar svg {
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+}
+
+#settings .avatar-edit {
+    display:none !important;
+}
+
+#settings .nexora-profile h2 {
+    font-size:17px !important;
+    margin:0 !important;
+}
+
+#settings .nexora-profile p {
+    font-size:11px !important;
+    margin:4px 0 0 !important;
+}
+
+/* NAVIGATION EN DEUX COLONNES */
+#settings .settings-layout {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:14px !important;
+}
+
+#settings .settings-nav {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    flex-direction:unset !important;
+    gap:8px !important;
+    width:100% !important;
+    padding:11px !important;
+    background:#0d0d0d !important;
+    border:1px solid #292929 !important;
+    border-radius:15px !important;
+}
+
+#settings .settings-group-title {
+    grid-column:1/-1 !important;
+    font-size:10px !important;
+    margin:8px 0 3px !important;
+    padding-bottom:7px !important;
+    border-bottom:1px solid #292929 !important;
+}
+
+#settings .settings-tab {
+    display:flex !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:48px !important;
+    padding:8px !important;
+    gap:7px !important;
+    font-size:12px !important;
+    border-radius:11px !important;
+    background:#171717 !important;
+    border:1px solid #292929 !important;
+}
+
+#settings .settings-tab.active {
+    background:#24190f !important;
+    border:1px solid #bd813c !important;
+    box-shadow:inset 3px 0 #e58b32 !important;
+}
+
+#settings .settings-tab span:not(.settings-icon) {
+    min-width:0 !important;
+    flex:1 !important;
+}
+
+#settings .settings-icon {
+    flex:0 0 25px !important;
+    width:25px !important;
+    height:25px !important;
+    font-size:15px !important;
+    color:#e5a45f !important;
+}
+
+/* CONTENU */
+#settings .settings-content {
+    width:100% !important;
+    min-width:0 !important;
+    padding:14px !important;
+    background:#0e0e0e !important;
+    border:1px solid #292929 !important;
+    border-radius:15px !important;
+}
+
+#settings .settings-section {
+    display:none !important;
+}
+
+#settings .settings-section.active {
+    display:block !important;
+}
+
+#settings .settings-card {
+    width:100% !important;
+    padding:15px !important;
+    border-radius:12px !important;
+    background:#151515 !important;
+    border:1px solid #292929 !important;
+}
+
+/* ECRANS PLUS LARGES */
+@media(min-width:700px) {
+    #settings .settings-panel {
+        max-width:850px !important;
+    }
+
+    #settings .settings-layout {
+        display:grid !important;
+        grid-template-columns:250px minmax(0,1fr) !important;
+        align-items:start !important;
+    }
+
+    #settings .settings-nav {
+        display:flex !important;
+        flex-direction:column !important;
+    }
+}
+
+</style>

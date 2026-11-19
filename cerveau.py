@@ -1,52 +1,193 @@
 import os
-import json
-import urllib.request
-import urllib.error
+import requests
+from dotenv import load_dotenv
 
-historique = []
+load_dotenv()
 
-def repondre(message):
-    cle = os.environ.get("GROQ_API_KEY")
+ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+API_TOKEN = os.getenv("CLOUDFLARE_API_TOKEN")
 
-    if not cle:
-        return "Clé API introuvable."
+URL = (
+    f"https://api.cloudflare.com/client/v4/accounts/"
+    f"{ACCOUNT_ID}/ai/run/@cf/meta/llama-3.1-8b-instruct"
+) if ACCOUNT_ID else None
 
-    historique.append({
+
+SYSTEME = """
+Tu es NEXORA AI, un assistant intelligent, moderne et performant.
+
+IDENTITÉ :
+Tu es NEXORA, une intelligence artificielle conçue pour aider,
+expliquer, analyser, réfléchir et accompagner les utilisateurs.
+
+COMPORTEMENT :
+- Réponds dans la langue de l'utilisateur.
+- Sois naturel, intelligent et respectueux.
+- Comprends le contexte de la conversation.
+- Évite les répétitions inutiles.
+- Ne demande pas des informations déjà fournies.
+- Donne des réponses précises et utiles.
+- Explique les sujets complexes étape par étape.
+- Adapte ton vocabulaire au niveau de l'utilisateur.
+- Utilise des exemples lorsque cela facilite la compréhension.
+- Reconnais tes erreurs et corrige-les.
+- Ne fabrique jamais de fausses informations.
+- Ne prétends jamais avoir effectué une action non réalisée.
+
+RAISONNEMENT :
+- Analyse la demande avant de répondre.
+- Identifie précisément le besoin.
+- Tiens compte des messages précédents.
+- Privilégie les solutions concrètes.
+- Si plusieurs solutions existent, présente la meilleure.
+
+IDENTITÉ VISUELLE :
+Utilise occasionnellement des emojis adaptés.
+Garde un style moderne, professionnel et agréable.
+"""
+
+
+def repondre(message, historique=None, parametres=None):
+
+    if not ACCOUNT_ID or not API_TOKEN:
+        return "Configuration IA incomplète. Vérifie les identifiants Cloudflare."
+
+    if not isinstance(message, str) or not message.strip():
+        return "Écris un message pour commencer."
+
+    parametres = parametres if isinstance(parametres, dict) else {}
+
+    longueur = parametres.get("longueur", "normale")
+    creativite = parametres.get("creativite", "normale")
+
+    limites = {
+        "courte": 500,
+        "normale": 1200,
+        "detaillee": 2000
+    }
+
+    temperatures = {
+        "faible": 0.2,
+        "normale": 0.7,
+        "elevee": 1.0
+    }
+
+    consignes = {
+        "courte": "Réponds de manière courte et directe.",
+        "normale": "Donne une réponse équilibrée et claire.",
+        "detaillee": "Donne une réponse détaillée et bien expliquée."
+    }
+
+    systeme = SYSTEME + "\n\n" + consignes.get(
+        longueur, consignes["normale"]
+    )
+
+    messages = [
+        {
+            "role": "system",
+            "content": systeme
+        }
+    ]
+
+    if isinstance(historique, list):
+
+        for element in historique[-12:]:
+
+            if not isinstance(element, dict):
+                continue
+
+            role = element.get("role")
+            contenu = element.get("texte", "")
+
+            if role not in ("user", "bot"):
+                continue
+
+            if not isinstance(contenu, str):
+                continue
+
+            contenu = contenu.strip()
+
+            if not contenu:
+                continue
+
+            messages.append({
+                "role": "user" if role == "user" else "assistant",
+                "content": contenu[:3000]
+            })
+
+    messages.append({
         "role": "user",
-        "content": message
+        "content": message.strip()[:5000]
     })
 
     donnees = {
-        "model": "openai/gpt-oss-20b",        "messages": [
-            {
-                "role": "system",
-                "content": "Tu es NEXORA AI, un assistant intelligent, amical et pédagogique. Tu réponds naturellement et tu gardes le contexte de la conversation."
-            }
-        ] + historique[-20:]
+        "messages": messages,
+        "max_tokens": limites.get(longueur, 1200),
+        "temperature": temperatures.get(creativite, 0.7)
     }
 
-    requete = urllib.request.Request(
-        "https://api.groq.com/openai/v1/chat/completions",
-        data=json.dumps(donnees).encode("utf-8"),
-        headers={
-            "Authorization": "Bearer " + cle,
-            "Content-Type": "application/json",
-            "User-Agent": "NEXORA-AI/1.0",
-        },
-        method="POST"
-    )
-
     try:
-        with urllib.request.urlopen(requete, timeout=60) as reponse:
-            resultat = json.loads(reponse.read().decode("utf-8"))
-            texte = resultat["choices"][0]["message"]["content"]
 
-            historique.append({
-                "role": "assistant",
-                "content": texte
-            })
+        reponse = requests.post(
+            URL,
+            headers={
+                "Authorization": f"Bearer {API_TOKEN}",
+                "Content-Type": "application/json"
+            },
+            json=donnees,
+            timeout=90
+        )
 
-            return texte
+        if reponse.status_code == 401:
+            return "Erreur : le jeton Cloudflare n'est pas accepté."
 
-    except Exception as erreur:
-        return "Erreur : " + str(erreur)
+        if reponse.status_code == 404:
+            return "Erreur : le modèle IA demandé est introuvable."
+
+        if reponse.status_code == 429:
+            return "Limite de requêtes atteinte. Réessaie plus tard."
+
+        try:
+            resultat = reponse.json()
+        except ValueError:
+            resultat = {}
+
+        if resultat.get("success") is False:
+            erreurs = resultat.get("errors", [])
+            codes = [
+                str(erreur.get("code", ""))
+                for erreur in erreurs
+                if isinstance(erreur, dict)
+            ]
+
+            if "8007" in codes:
+                return (
+                    "Cloudflare a bloqué ce message avec son filtre "
+                    "de sécurité. Essaie de reformuler ta demande."
+                )
+
+            return "Le service IA a refusé la requête. Réessaie."
+
+        reponse.raise_for_status()
+
+        texte = resultat.get("result", {}).get("response")
+
+        if not isinstance(texte, str) or not texte.strip():
+            return "L'IA n'a pas fourni de réponse. Réessaie."
+
+        return texte.strip()
+
+    except requests.exceptions.Timeout:
+        return "Le serveur IA met trop de temps à répondre."
+
+    except requests.exceptions.ConnectionError:
+        return "Impossible de joindre le serveur IA. Vérifie Internet."
+
+    except requests.exceptions.HTTPError:
+        return "Le service Cloudflare a rencontré une erreur."
+
+    except (ValueError, KeyError, TypeError):
+        return "La réponse reçue du service IA est invalide."
+
+    except Exception:
+        return "Une erreur inattendue est survenue."
