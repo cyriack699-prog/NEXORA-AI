@@ -24,31 +24,65 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///nexora.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
+
 def demande_image(message):
     import unicodedata
+    import re
 
-    texte = message.lower().replace("’", " ").replace("'", " ")
+    if not isinstance(message, str):
+        return False
+
+    texte = message.lower().replace("’", "'")
     texte = unicodedata.normalize("NFKD", texte)
     texte = "".join(
         c for c in texte if not unicodedata.combining(c)
     )
+    texte = re.sub(r"[^a-z0-9 ]", " ", texte)
+    texte = re.sub(r"\s+", " ", texte).strip()
 
     mots = set(texte.split())
 
     actions = {
         "genere", "generer", "cree", "creer",
-        "dessine", "dessiner", "imagine"
+        "dessine", "dessiner", "imagine",
+        "fabrique", "produis", "produire",
+        "realise", "concois"
     }
 
     objets = {
         "image", "images", "photo", "photos",
-        "illustration", "dessin", "logo",
-        "avatar", "portrait"
+        "photographie", "illustration", "dessin",
+        "logo", "avatar", "portrait", "affiche",
+        "fond", "ecran", "wallpaper", "3d",
+        "render", "visuel", "banniere"
     }
 
-    return bool(mots & actions) and (
-        bool(mots & objets) or "dessine" in mots
-    )
+    if mots & actions:
+        if mots & objets:
+            return True
+
+        if "dessine" in mots or "dessiner" in mots:
+            return True
+
+        if re.search(r"\b(genere|generer|cree|creer|imagine|fabrique)\b", texte):
+            return True
+
+    expressions_visuelles = [
+        r"\bje veux voir\b",
+        r"\bmontre moi\b",
+        r"\bfais voir\b",
+        r"\bfais moi une photo\b",
+        r"\bfais moi une image\b",
+        r"\bfais moi un dessin\b",
+        r"\bje veux une image\b",
+        r"\bje veux une photo\b",
+        r"\btransforme moi en\b"
+    ]
+
+    if any(re.search(expression, texte) for expression in expressions_visuelles):
+        return True
+
+    return False
 
 
 @app.route("/")
