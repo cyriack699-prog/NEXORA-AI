@@ -4561,4 +4561,149 @@ button:active {
     }
 }
 
+
+/* NEXORA — ADAPTATION RESPONSIVE */
+@media (max-width: 700px) {
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: min(85vw, 300px) !important;
+        min-width: 0 !important;
+        max-width: 300px !important;
+        transform: translateX(-105%);
+        transition: transform .25s ease !important;
+        z-index: 1001 !important;
+        padding-top: max(18px, env(safe-area-inset-top)) !important;
+    }
+
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
+
+    body:has(#sidebar.open)::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        backdrop-filter: blur(2px);
+        z-index: 1000;
+    }
+
+    .main {
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    #chat {
+        width: 100%;
+        max-width: 900px;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        overflow-wrap: anywhere;
+    }
+
+    #zone {
+        box-sizing: border-box;
+        max-width: 850px;
+    }
+
+    #question {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    img, video, pre, table {
+        max-width: 100%;
+    }
+
+    pre, table {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 380px) {
+    header {
+        gap: 6px;
+        padding-left: 9px;
+        padding-right: 9px;
+    }
+
+    #chat {
+        padding-left: 11px;
+        padding-right: 11px;
+    }
+
+    #zone {
+        width: calc(100% - 16px);
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+}
+
+@media (min-width: 701px) and (max-width: 950px) {
+    .sidebar {
+        width: 245px;
+        min-width: 245px;
+    }
+
+    #chat {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+
+/* NEXORA — SUPPRESSION DES LUEURS VIOLETTES */
+:root {
+    --accent: #899982;
+    --bleu: #899982;
+}
+
+body.dark-theme {
+    --accent: #a0a0a0;
+    --bleu: #b0b0b0;
+}
+
+.brand-mark,
+.new,
+.send,
+.orb,
+.message.user,
+.settings-panel,
+.settings-card:hover,
+.suggestion:hover,
+.download-image:hover,
+.send:hover:not(:disabled),
+#theme-toggle:hover,
+.menu:hover,
+.settings-close:hover {
+    box-shadow: 0 5px 18px rgba(0,0,0,.16) !important;
+}
+
+#zone:focus-within {
+    border-color: #888 !important;
+    box-shadow: 0 0 0 3px rgba(150,150,150,.10) !important;
+}
+
+.settings-panel {
+    border-color: var(--bordure) !important;
+}
+
+.settings-tab.active {
+    box-shadow: inset 3px 0 0 var(--accent) !important;
+}
+
+.typing-indicator span {
+    background: #999 !important;
+}
+
+.history-dot {
+    box-shadow: none !important;
+}
+
 </style>
