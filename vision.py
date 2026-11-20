@@ -1,63 +1,98 @@
 import os
 import base64
 import requests
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env")
+
+MODEL = "gemini-2.5-flash-lite"
 
 def analyser_photo(image):
-    account = os.getenv("CLOUDFLARE_ACCOUNT_ID")
-    token = os.getenv("CLOUDFLARE_API_TOKEN")
+    if not image:
+        return "Aucune image reçue."
 
-    if not account or not token:
-        return "Configuration Cloudflare manquante."
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        return "Configuration Gemini manquante : clé API non configurée."
 
     try:
+        if image.startswith(b"\x89PNG"):
+            mime = "image/png"
+        elif image.startswith(b"RIFF") and image[8:12] == b"WEBP":
+            mime = "image/webp"
+        elif image.startswith(b"GIF8"):
+            mime = "image/gif"
+        else:
+            mime = "image/jpeg"
+
         image_base64 = base64.b64encode(image).decode("utf-8")
 
         url = (
-            f"https://api.cloudflare.com/client/v4/accounts/{account}"
-            "/ai/run/@cf/meta/llama-3.2-11b-vision-instruct"
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{MODEL}:generateContent"
         )
 
         reponse = requests.post(
             url,
-            headers={"Authorization": f"Bearer {token}"},
+            headers={
+                "x-goog-api-key": api_key,
+                "Content-Type": "application/json"
+            },
             json={
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": "Lis cette photo et explique l'exercice étape par étape en français."
-                    }
-                ],
-                "image": "data:image/jpeg;base64," + image_base64,
-                "max_tokens": 1000
+                "contents": [{
+                    "parts": [
+                        {
+                            "inlineData": {
+                                "mimeType": mime,
+                                "data": image_base64
+                            }
+                        },
+                        {
+                            "text": (
+                                "Analyse cette image en français. "
+                                "Décris ce que tu vois. "
+                                "Si elle contient un exercice scolaire, "
+                                "lis l'énoncé et explique la résolution "
+                                "étape par étape. Si elle contient du texte, "
+                                "retranscris-le fidèlement."
+                            )
+                        }
+                    ]
+                }],
+                "generationConfig": {
+                    "maxOutputTokens": 1500,
+                    "temperature": 0.4
+                }
             },
             timeout=120
         )
 
         if not reponse.ok:
             try:
-                erreur = reponse.json().get("errors", [])
-                detail = "; ".join(
-                    str(e.get("message", "")) for e in erreur
-                )
+                detail = reponse.json().get("error", {}).get("message", "")
             except Exception:
                 detail = ""
 
-            return f"Cloudflare HTTP {reponse.status_code} : {detail or 'Erreur API'}"
+            return f"Gemini HTTP {reponse.status_code} : {detail or 'Erreur API'}"
 
         donnees = reponse.json()
-        resultat = donnees.get("result", {})
+        candidats = donnees.get("candidates", [])
 
-        return resultat.get(
-            "response",
-            "Aucune réponse reçue du modèle Vision."
+        if not candidats:
+            return "Gemini n'a fourni aucune réponse."
+
+        parties = candidats[0].get("content", {}).get("parts", [])
+        texte = "\n".join(
+            p["text"] for p in parties if p.get("text")
         )
 
+        return texte or "Aucune réponse textuelle reçue de Gemini."
+
     except requests.exceptions.Timeout:
-        return "Délai dépassé : Cloudflare met trop de temps."
+        return "Délai dépassé : Gemini met trop de temps."
     except requests.exceptions.ConnectionError:
-        return "Connexion impossible à Cloudflare."
+        return "Connexion impossible à Gemini."
     except Exception as e:
         return "Erreur technique : " + str(e)[:200]
