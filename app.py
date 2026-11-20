@@ -268,7 +268,12 @@ def creer_video():
     if not isinstance(prompt, str) or not prompt.strip():
         return jsonify({"error": "Décris la vidéo à créer."}), 400
 
-    if not isinstance(duree, int) or duree not in (2, 5, 8):
+    try:
+        duree = int(duree)
+    except (TypeError, ValueError):
+        return jsonify({"error": "Durée invalide. Choisis 2, 5 ou 8 secondes."}), 400
+
+    if duree not in (2, 5, 8):
         return jsonify({"error": "Durées disponibles : 2, 5 ou 8 secondes."}), 400
 
     if format_video not in ("paysage", "portrait"):
