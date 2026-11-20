@@ -86,8 +86,10 @@ Garde un style moderne, professionnel et agréable.
 
 def repondre(message, historique=None, parametres=None):
 
-    if not os.getenv("OPENAI_API_KEY") and (not ACCOUNT_ID or not API_TOKEN):
-        return "Configuration IA incomplète. Configure OpenAI ou Cloudflare."
+    groq_key = os.getenv("GROQ_API_KEY")
+
+    if not groq_key and (not ACCOUNT_ID or not API_TOKEN):
+        return "Configuration IA incomplète. Configure Groq ou Cloudflare."
 
     if not isinstance(message, str) or not message.strip():
         return "Écris un message pour commencer."
@@ -157,62 +159,41 @@ def repondre(message, historique=None, parametres=None):
         "content": message.strip()[:5000]
     })
 
-    # OpenAI : moteur principal de NEXORA
-    openai_key = os.getenv("OPENAI_API_KEY")
-
-    if openai_key:
+    # GROQ : moteur principal de NEXORA
+    if groq_key:
         try:
-            consignes_creativite = {
-                "faible": "Privilégie les réponses prudentes et factuelles.",
-                "normale": "Garde un équilibre entre précision et créativité.",
-                "elevee": "Sois particulièrement créatif tout en restant exact."
-            }
-
-            reponse_openai = requests.post(
-                "https://api.openai.com/v1/responses",
+            reponse_groq = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {openai_key}",
+                    "Authorization": f"Bearer {groq_key}",
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": os.getenv("OPENAI_MODEL", "gpt-6.2-sol"),
-                    "instructions": (
-                        systeme + "\n\n"
-                        + consignes_creativite.get(creativite, consignes_creativite["normale"])
-                    ),
-                    "input": [
-                        m for m in messages if m["role"] != "system"
-                    ],
-                    "max_output_tokens": limites.get(longueur, 1200)
+                    "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+                    "messages": messages,
+                    "max_completion_tokens": max(1024, limites.get(longueur, 1200)),
+                    "reasoning_effort": "low",
+                    "include_reasoning": False
                 },
-                timeout=120
+                timeout=90
             )
 
-            if reponse_openai.ok:
-                resultat_openai = reponse_openai.json()
-                texte_openai = resultat_openai.get("output_text", "")
-
-                if not texte_openai:
-                    morceaux = []
-                    for element in resultat_openai.get("output", []):
-                        for contenu in element.get("content", []):
-                            if contenu.get("type") == "output_text":
-                                morceaux.append(contenu.get("text", ""))
-                    texte_openai = "\n".join(morceaux)
-
-                if isinstance(texte_openai, str) and texte_openai.strip():
-                    return texte_openai.strip()
-
-            else:
-                return (
-                    f"ERREUR OPENAI HTTP {reponse_openai.status_code}: "
-                    f"{reponse_openai.text[:1000]}"
+            if reponse_groq.ok:
+                resultat_groq = reponse_groq.json()
+                choix = resultat_groq.get("choices", [])
+                texte_groq = (
+                    choix[0].get("message", {}).get("content")
+                    if choix else None
                 )
 
-        except (requests.RequestException, ValueError, TypeError) as erreur:
-            return f"ERREUR OPENAI {type(erreur).__name__}: {erreur}"
+                if isinstance(texte_groq, str) and texte_groq.strip():
+                    return texte_groq.strip()
 
-    # Secours Cloudflare et Pollinations si OpenAI est indisponible.
+        except (requests.RequestException, ValueError, TypeError):
+            pass
+
+    # SECOURS : Cloudflare si Groq est indisponible.
+
 
     donnees = {
         "messages": messages,
@@ -241,7 +222,7 @@ def repondre(message, historique=None, parametres=None):
         if reponse.status_code == 429:
             polli_key = os.getenv("POLLINATIONS_API_KEY")
 
-            if not polli_key:
+            if not polli_key or os.getenv("NEXORA_ALLOW_PAID_POLLINATIONS") != "1":
                 return "Cloudflare est limité et Pollinations n'est pas configuré."
 
             try:
