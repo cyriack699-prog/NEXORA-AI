@@ -2560,7 +2560,7 @@ method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
 message:texte,
-historique:parametresNexora.memoire ? discussion.slice(0,-1).slice(-12) : [],
+historique:parametresNexora.memoire ? discussion.slice(0,-1).slice(-20) : [],
 parametres:parametresNexora
 })
 });

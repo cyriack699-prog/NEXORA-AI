@@ -205,7 +205,7 @@ def chat():
 
         historique_valide = []
 
-        for element in historique[-12:]:
+        for element in historique[-20:]:
             if not isinstance(element, dict):
                 continue
 
