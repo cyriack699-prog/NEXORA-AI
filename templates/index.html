@@ -1893,6 +1893,103 @@ body {
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+
+
+<style>
+/* NEXORA — AFFICHAGE DES RÉPONSES MARKDOWN */
+#chat .message.bot {
+    white-space: normal;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+}
+
+#chat .message.bot p {
+    margin: 0 0 13px;
+}
+
+#chat .message.bot h1,
+#chat .message.bot h2,
+#chat .message.bot h3 {
+    line-height: 1.35;
+    margin: 22px 0 10px;
+    font-weight: 750;
+}
+
+#chat .message.bot h1 { font-size: 1.45em; }
+#chat .message.bot h2 { font-size: 1.25em; }
+#chat .message.bot h3 { font-size: 1.1em; }
+
+#chat .message.bot ul,
+#chat .message.bot ol {
+    padding-left: 25px;
+    margin: 10px 0 16px;
+}
+
+#chat .message.bot li {
+    margin: 5px 0;
+}
+
+#chat .message.bot strong {
+    font-weight: 750;
+}
+
+#chat .message.bot blockquote {
+    margin: 14px 0;
+    padding: 8px 14px;
+    border-left: 3px solid var(--bleu, #4f7cff);
+    background: var(--message, rgba(128,128,128,.08));
+    border-radius: 5px;
+}
+
+#chat .message.bot pre {
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 14px;
+    margin: 14px 0;
+    border-radius: 12px;
+    background: var(--message, rgba(128,128,128,.08));
+    white-space: pre;
+}
+
+#chat .message.bot code {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: .9em;
+}
+
+#chat .message.bot :not(pre) > code {
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: var(--message, rgba(128,128,128,.08));
+}
+
+#chat .message.bot table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 14px 0;
+}
+
+#chat .message.bot th,
+#chat .message.bot td {
+    padding: 9px 12px;
+    border: 1px solid var(--bordure, #cccccc);
+    text-align: left;
+}
+
+#chat .message.bot th {
+    font-weight: 700;
+    background: var(--message, rgba(128,128,128,.08));
+}
+
+#chat .message.bot a {
+    color: var(--bleu, #4f7cff);
+    text-decoration: underline;
+}
+</style>
+
 </head>
 
 <body>
@@ -2478,19 +2575,46 @@ localStorage.setItem("nexora_historique", JSON.stringify(historique));
 menuMobileFermer();
 }
 
-function afficherMessage(texte,role,image=null){
-const div=document.createElement("div");
-div.className="message "+role;
-div.textContent=texte;
-if(image){
-const img=document.createElement("img");
-img.src=image;
-img.className="image-generee";
-div.appendChild(img);
+function rendreMarkdown(element, texte){
+    const contenu = String(texte ?? "");
+
+    if(window.marked && window.DOMPurify){
+        const html = window.marked.parse(contenu, {
+            gfm: true,
+            breaks: true
+        });
+
+        element.innerHTML = window.DOMPurify.sanitize(html);
+
+        element.querySelectorAll("a").forEach(lien => {
+            lien.target = "_blank";
+            lien.rel = "noopener noreferrer";
+        });
+    } else {
+        element.textContent = contenu;
+    }
 }
-chat.appendChild(div);
-chat.scrollTop=chat.scrollHeight;
-return div;
+
+function afficherMessage(texte,role,image=null){
+    const div=document.createElement("div");
+    div.className="message "+role;
+
+    if(role === "bot"){
+        rendreMarkdown(div, texte);
+    } else {
+        div.textContent=texte;
+    }
+
+    if(image){
+        const img=document.createElement("img");
+        img.src=image;
+        img.className="image-generee";
+        div.appendChild(img);
+    }
+
+    chat.appendChild(div);
+    chat.scrollTop=chat.scrollHeight;
+    return div;
 }
 
 
@@ -2516,13 +2640,15 @@ async function afficherTexteProgressif(element, texte){
     // Supprimer entièrement le message "NEXORA réfléchit"
     element.replaceChildren();
 
-    const sortie = document.createElement("span");
+    const sortie = document.createElement("div");
     sortie.className = "reponse-progressive";
     element.appendChild(sortie);
 
     const reduire = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const vitesse = reduire ? 0 : 5;
     const taille = 4;
+
+    texte = String(texte ?? "");
 
     for(let i = 0; i < texte.length; i += taille){
         sortie.textContent += texte.slice(i, i + taille);
@@ -2532,6 +2658,9 @@ async function afficherTexteProgressif(element, texte){
             await new Promise(resolve => setTimeout(resolve, vitesse));
         }
     }
+
+    rendreMarkdown(sortie, texte);
+    chat.scrollTop = chat.scrollHeight;
 }
 
 async function envoyer(){
