@@ -86,8 +86,8 @@ Garde un style moderne, professionnel et agréable.
 
 def repondre(message, historique=None, parametres=None):
 
-    if not ACCOUNT_ID or not API_TOKEN:
-        return "Configuration IA incomplète. Vérifie les identifiants Cloudflare."
+    if not os.getenv("OPENAI_API_KEY") and (not ACCOUNT_ID or not API_TOKEN):
+        return "Configuration IA incomplète. Configure OpenAI ou Cloudflare."
 
     if not isinstance(message, str) or not message.strip():
         return "Écris un message pour commencer."
@@ -156,6 +156,57 @@ def repondre(message, historique=None, parametres=None):
         "role": "user",
         "content": message.strip()[:5000]
     })
+
+    # OpenAI : moteur principal de NEXORA
+    openai_key = os.getenv("OPENAI_API_KEY")
+
+    if openai_key:
+        try:
+            consignes_creativite = {
+                "faible": "Privilégie les réponses prudentes et factuelles.",
+                "normale": "Garde un équilibre entre précision et créativité.",
+                "elevee": "Sois particulièrement créatif tout en restant exact."
+            }
+
+            reponse_openai = requests.post(
+                "https://api.openai.com/v1/responses",
+                headers={
+                    "Authorization": f"Bearer {openai_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": os.getenv("OPENAI_MODEL", "gpt-6.2-sol"),
+                    "instructions": (
+                        systeme + "\n\n"
+                        + consignes_creativite.get(creativite, consignes_creativite["normale"])
+                    ),
+                    "input": [
+                        m for m in messages if m["role"] != "system"
+                    ],
+                    "max_output_tokens": limites.get(longueur, 1200)
+                },
+                timeout=120
+            )
+
+            if reponse_openai.ok:
+                resultat_openai = reponse_openai.json()
+                texte_openai = resultat_openai.get("output_text", "")
+
+                if not texte_openai:
+                    morceaux = []
+                    for element in resultat_openai.get("output", []):
+                        for contenu in element.get("content", []):
+                            if contenu.get("type") == "output_text":
+                                morceaux.append(contenu.get("text", ""))
+                    texte_openai = "\n".join(morceaux)
+
+                if isinstance(texte_openai, str) and texte_openai.strip():
+                    return texte_openai.strip()
+
+        except (requests.RequestException, ValueError, TypeError):
+            pass
+
+    # Secours Cloudflare et Pollinations si OpenAI est indisponible.
 
     donnees = {
         "messages": messages,
