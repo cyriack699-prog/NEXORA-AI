@@ -3698,99 +3698,82 @@ async function lancerCreationVideo(){
 
 <style id="nexora-black-gold-final">
 :root, body, body.dark-theme {
-    --fond:#090909 !important;
-    --panneau:#111111 !important;
-    --texte:#F5F0E5 !important;
-    --secondaire:#AAA18F !important;
-    --bordure:#302719 !important;
+    --fond:#050505 !important;
+    --panneau:#0A0A0A !important;
+    --texte:#F5F5F5 !important;
+    --secondaire:#A0A0A0 !important;
+    --bordure:#242424 !important;
     --accent:#D4AF37 !important;
-    --bleu:#E8C76A !important;
-    --message:#1C1912 !important;
-    --ombre:0 8px 35px rgba(212,175,55,.08) !important;
+    --bleu:#FFFFFF !important;
+    --message:#111111 !important;
+    --ombre:none !important;
 }
-body {
-    background:#090909 !important;
-    color:#F5F0E5 !important;
+body, .sidebar, header, .main, .settings-panel {
+    background:#050505 !important;
+    color:#F5F5F5 !important;
 }
-.sidebar, header, .main, .settings-panel {
-    background:#090909 !important;
-}
-.sidebar {
-    border-color:#302719 !important;
-}
-.logo small, .link-icon, .header-logo {
+.sidebar { border-color:#242424 !important; }
+.logo small, .header-logo, .brand-mark {
     color:#D4AF37 !important;
 }
-.brand-mark {
-    filter:drop-shadow(0 0 9px rgba(212,175,55,.25)) !important;
+.brand-mark { filter:none !important; }
+.link-icon { color:#CCCCCC !important; }
+.new, .send, .orb {
+    background:#111111 !important;
+    color:#FFFFFF !important;
+    border:1px solid #303030 !important;
+    box-shadow:none !important;
 }
-.new, .send {
-    background:linear-gradient(135deg,#B8860B,#F5D77A,#D4AF37) !important;
-    color:#090909 !important;
-    border:1px solid #E8C76A !important;
-    box-shadow:0 5px 20px rgba(212,175,55,.18) !important;
-}
-.new:hover, .send:hover {
-    filter:brightness(1.12) !important;
-}
-.orb {
-    background:linear-gradient(135deg,#B8860B,#F5D77A) !important;
-    color:#090909 !important;
-    box-shadow:0 0 30px rgba(212,175,55,.2) !important;
-}
+.new:hover, .send:hover { filter:none !important; }
 .welcome h1 {
-    background:linear-gradient(100deg,#D4AF37,#FFF0B0,#B8860B) !important;
-    background-clip:text !important;
-    -webkit-background-clip:text !important;
-    color:transparent !important;
-    -webkit-text-fill-color:transparent !important;
+    background:none !important;
+    color:#FFFFFF !important;
+    -webkit-text-fill-color:#FFFFFF !important;
 }
 .suggestion, .history-item, .profile-card,
 .sidebar-search, #zone, #menu-ajout,
 .settings-content, .settings-card {
-    background:#111111 !important;
-    border-color:#302719 !important;
-    color:#F5F0E5 !important;
+    background:#0D0D0D !important;
+    border-color:#292929 !important;
+    color:#F5F5F5 !important;
 }
 .suggestion:hover, .download-image:hover,
 .sidebar-link:hover, .history-item:hover {
-    border-color:#D4AF37 !important;
+    border-color:#555555 !important;
 }
 .message.user {
-    background:linear-gradient(120deg,#8F6810,#D4AF37) !important;
-    color:#090909 !important;
-    border:1px solid #E8C76A !important;
+    background:#191919 !important;
+    color:#FFFFFF !important;
+    border:1px solid #303030 !important;
 }
 #zone:focus-within {
-    border-color:#D4AF37 !important;
-    box-shadow:0 0 0 3px rgba(212,175,55,.13) !important;
+    border-color:#555555 !important;
+    box-shadow:none !important;
 }
 #theme-toggle, .menu, .photo-btn, #bouton-vocal,
 .bottom button, .download-image {
-    background:#17140E !important;
-    color:#E8C76A !important;
-    border-color:#493719 !important;
+    background:#111111 !important;
+    color:#EEEEEE !important;
+    border-color:#303030 !important;
+    box-shadow:none !important;
 }
 #bouton-vocal.ecoute-active {
-    background:#D4AF37 !important;
-    color:#090909 !important;
-    border-color:#D4AF37 !important;
+    background:#252525 !important;
+    color:#FFFFFF !important;
+    border-color:#555555 !important;
 }
-.status {
-    color:#D4AF37 !important;
+.status, #settings .settings-icon {
+    color:#CCCCCC !important;
 }
 #settings .settings-tab.active {
-    background:#241C0C !important;
-    border-color:#D4AF37 !important;
-    box-shadow:inset 3px 0 #D4AF37 !important;
-}
-#settings .settings-icon {
-    color:#E8C76A !important;
+    background:#171717 !important;
+    border-color:#444444 !important;
+    box-shadow:none !important;
 }
 #settings .settings-nav, #settings .settings-content,
 #settings .settings-card {
-    background:#101010 !important;
-    border-color:#493719 !important;
+    background:#0A0A0A !important;
+    border-color:#292929 !important;
 }
 </style>
 
