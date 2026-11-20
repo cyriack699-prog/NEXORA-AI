@@ -83,13 +83,18 @@ def generer_video(prompt, duree=5, format_video="paysage"):
                     if contenu == "[DONE]":
                         break
 
+                    print(
+                        f"[LTX DEBUG] événement={type_evenement} données={contenu[:2000]}",
+                        flush=True
+                    )
+
                     try:
                         resultat = json.loads(contenu)
                     except json.JSONDecodeError:
                         continue
 
                     if type_evenement == "error":
-                        return {"error": f"Erreur LTX : {resultat}"}
+                        return {"error": f"Erreur LTX : {contenu or 'Aucun détail fourni'}"}
 
                     if type_evenement == "complete":
                         break
