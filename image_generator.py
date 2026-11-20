@@ -71,12 +71,12 @@ def generer_cloudflare(prompt):
     r = requests.post(
         url,
         headers={"Authorization": f"Bearer {token}"},
-        json={
-            "prompt": prompt[:3000],
-            "steps": 25,
-            "width": 1024,
-            "height": 1024,
-            "guidance": 4
+        files={
+            "prompt": (None, prompt[:3000]),
+            "steps": (None, "25"),
+            "width": (None, "1024"),
+            "height": (None, "1024"),
+            "guidance": (None, "4")
         },
         timeout=300
     )
@@ -97,15 +97,77 @@ def generer_cloudflare(prompt):
     return resultat
 
 
+def ameliorer_prompt(prompt):
+    cle = os.getenv("GROQ_API_KEY")
+    if not cle:
+        return prompt
+
+    try:
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {cle}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "Tu es un directeur artistique professionnel. "
+                            "Transforme la demande en un prompt visuel précis, "
+                            "détaillé et professionnel pour un générateur d'images. "
+                            "Respecte strictement le sujet, les couleurs, le style "
+                            "et les détails demandés. Conserve exactement les noms, "
+                            "numéros, slogans et textes entre guillemets. "
+                            "N'invente aucune information. "
+                            "Décris la composition, la lumière, le cadrage et "
+                            "l'ambiance lorsque c'est utile. "
+                            "Réponds uniquement avec le prompt final, sans explication."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt[:3000]
+                    }
+                ],
+                "max_completion_tokens": 800,
+                "reasoning_effort": "low",
+                "include_reasoning": False
+            },
+            timeout=45
+        )
+
+        if not r.ok:
+            return prompt
+
+        choix = r.json().get("choices", [])
+        resultat = (
+            choix[0].get("message", {}).get("content")
+            if choix else None
+        )
+
+        if isinstance(resultat, str) and resultat.strip():
+            return resultat.strip()[:5000]
+
+    except (requests.RequestException, ValueError, TypeError, KeyError, IndexError):
+        pass
+
+    return prompt
+
+
 def generer_image(prompt):
     if not isinstance(prompt, str) or not prompt.strip():
         return "Erreur image : décris l'image souhaitée."
 
+    prompt = ameliorer_prompt(prompt.strip())
+
     try:
-        return generer_pollinations(prompt.strip())
+        return generer_pollinations(prompt)
     except Exception as erreur_polli:
         try:
-            return generer_cloudflare(prompt.strip())
+            return generer_cloudflare(prompt)
         except Exception as erreur_cloud:
             return (
                 "Erreur Pollinations : " + str(erreur_polli)[:250]
