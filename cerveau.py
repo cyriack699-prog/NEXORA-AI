@@ -204,13 +204,13 @@ def repondre(message, historique=None, parametres=None):
                     return texte_openai.strip()
 
             else:
-                print(
-                    f"OPENAI HTTP {reponse_openai.status_code}: "
-                    f"{reponse_openai.text[:1500]}"
+                return (
+                    f"ERREUR OPENAI HTTP {reponse_openai.status_code}: "
+                    f"{reponse_openai.text[:1000]}"
                 )
 
         except (requests.RequestException, ValueError, TypeError) as erreur:
-            print(f"OPENAI ERREUR {type(erreur).__name__}: {erreur}")
+            return f"ERREUR OPENAI {type(erreur).__name__}: {erreur}"
 
     # Secours Cloudflare et Pollinations si OpenAI est indisponible.
 
