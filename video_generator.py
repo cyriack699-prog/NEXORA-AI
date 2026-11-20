@@ -1,4 +1,5 @@
 import uuid
+import os
 import json
 from pathlib import Path
 from urllib.parse import urljoin, quote
@@ -44,6 +45,11 @@ def generer_video(prompt, duree=5, format_video="paysage"):
 
     try:
         with requests.Session() as session:
+            hf_token = os.getenv("HF_TOKEN")
+            if hf_token:
+                session.headers.update({
+                    "Authorization": f"Bearer {hf_token}"
+                })
             # 1. Envoyer la demande dans la file d'attente Gradio
             reponse = session.post(
                 f"{API_URL}/gradio_api/call/text_to_video",
