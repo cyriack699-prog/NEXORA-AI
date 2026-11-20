@@ -8,7 +8,7 @@ load_dotenv(Path(__file__).parent / ".env")
 
 MODEL = "gemini-3.5-flash-lite"
 
-def analyser_photo(image):
+def analyser_photo(image, question=None):
     if not image:
         return "Aucune image reçue."
 
@@ -51,12 +51,8 @@ def analyser_photo(image):
                         },
                         {
                             "text": (
-                                "Analyse cette image en français. "
-                                "Décris ce que tu vois. "
-                                "Si elle contient un exercice scolaire, "
-                                "lis l'énoncé et explique la résolution "
-                                "étape par étape. Si elle contient du texte, "
-                                "retranscris-le fidèlement."
+                                question.strip() if isinstance(question, str) and question.strip()
+                                else "Analyse cette image en français. Décris ce que tu vois et explique les éléments importants."
                             )
                         }
                     ]

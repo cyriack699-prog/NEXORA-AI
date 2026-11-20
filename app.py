@@ -118,7 +118,7 @@ def chat():
                 "Aide-moi à comprendre cet exercice."
             ).strip()
 
-            reponse = analyser_photo(image)
+            reponse = analyser_photo(image, message)
 
             return jsonify({
                 "response": reponse or "Je n'ai pas pu analyser la photo."

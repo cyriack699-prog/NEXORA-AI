@@ -129,6 +129,10 @@ transform:translateY(-2px);
 #zone{width:calc(100% - 50px);max-width:850px;margin:12px auto 10px;padding:11px;display:flex;align-items:flex-end;gap:10px;border:1px solid var(--bordure);border-radius:22px;background:var(--panneau);box-shadow:0 8px 35px rgba(30,40,90,.09);transition:border-color .2s,box-shadow .2s}
 #zone:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px rgba(102,85,232,.09)}
 .input-box{flex:1;min-width:0}
+#apercu-photo{position:relative;width:76px;height:76px;margin:5px 0 8px}
+#apercu-photo[hidden]{display:none}
+#apercu-photo img{width:100%;height:100%;object-fit:cover;border-radius:12px;border:1px solid var(--bordure)}
+#retirer-photo{position:absolute;top:-8px;right:-8px;width:25px;height:25px;border:0;border-radius:50%;background:#222;color:white;font-size:17px;cursor:pointer;box-shadow:0 2px 8px #0005}
 #question{width:100%;max-height:150px;padding:12px 6px;resize:none;border:0;outline:0;background:transparent;color:var(--texte);font:inherit;font-size:14px}
 #question::placeholder{color:var(--secondaire)}
 .photo-btn,.send{width:43px;height:43px;flex-shrink:0;border:0;border-radius:14px;background:var(--message);color:var(--texte);font-size:21px;cursor:pointer}
@@ -2027,6 +2031,10 @@ hidden onchange="envoyerFichier(this)">
 </div>
 
 <div class="input-box">
+<div id="apercu-photo" hidden>
+<img id="image-apercu" alt="Aperçu de la photo">
+<button type="button" id="retirer-photo" onclick="retirerPhoto()" aria-label="Annuler la photo">×</button>
+</div>
 <textarea id="question" placeholder="Écris à NEXORA AI..." rows="1"></textarea>
 </div>
 
@@ -2529,7 +2537,12 @@ async function afficherTexteProgressif(element, texte){
 async function envoyer(){
 const texte=input.value.trim();
 const bouton=document.getElementById("bouton");
-if(!texte||bouton.disabled)return;
+if(bouton.disabled)return;
+if(photoEnAttente){
+    await envoyerPhotoEnAttente();
+    return;
+}
+if(!texte)return;
 
 document.getElementById("welcome")?.remove();
 
@@ -2689,7 +2702,10 @@ function lireReponseVocale(texte){
     speechSynthesis.speak(voix);
 }
 
-async function envoyerPhoto(champ){
+let photoEnAttente = null;
+let urlApercuPhoto = null;
+
+function envoyerPhoto(champ){
     const fichier = champ.files[0];
     if(!fichier) return;
 
@@ -2705,20 +2721,48 @@ async function envoyerPhoto(champ){
         return;
     }
 
-    const bouton = document.getElementById("bouton");
-    if(bouton.disabled){
-        champ.value="";
-        return;
+    photoEnAttente = fichier;
+
+    if(urlApercuPhoto) URL.revokeObjectURL(urlApercuPhoto);
+    urlApercuPhoto = URL.createObjectURL(fichier);
+
+    document.getElementById("image-apercu").src = urlApercuPhoto;
+    document.getElementById("apercu-photo").hidden = false;
+    document.getElementById("menu-ajout").classList.remove("ouvert");
+    input.focus();
+}
+
+function retirerPhoto(){
+    photoEnAttente = null;
+
+    if(urlApercuPhoto){
+        URL.revokeObjectURL(urlApercuPhoto);
+        urlApercuPhoto = null;
     }
 
-    const texte = input.value.trim() || "Aide-moi à comprendre et résoudre cet exercice étape par étape.";
+    document.getElementById("image-apercu").src = "";
+    document.getElementById("apercu-photo").hidden = true;
+    document.getElementById("camera-input").value = "";
+    document.getElementById("gallery-input").value = "";
+}
+
+async function envoyerPhotoEnAttente(){
+    const fichier = photoEnAttente;
+    if(!fichier) return;
+
+    const bouton = document.getElementById("bouton");
+    if(bouton.disabled) return;
+
+    const texte = input.value.trim() ||
+        "Analyse cette image et explique-moi ce qu'elle contient.";
 
     document.getElementById("welcome")?.remove();
-
-    discussion.push({texte:"Photo : "+fichier.name,role:"user"});
-    afficherMessage("📷 Photo envoyée : "+fichier.name,"user");
+    discussion.push({texte:"📷 "+fichier.name+"\n"+texte,role:"user"});
+    afficherMessage("📷 "+fichier.name+"\n"+texte,"user");
 
     input.value="";
+    input.style.height="auto";
+
     const attente = afficherAttente("NEXORA analyse ta photo");
     bouton.disabled=true;
 
@@ -2733,23 +2777,17 @@ async function envoyerPhoto(champ){
         });
 
         const donnees = await resultat.json();
-
         if(!resultat.ok) throw new Error(donnees.response || "Erreur serveur");
 
         attente.textContent = donnees.response || "Aucune réponse reçue.";
-
-        discussion.push({
-            texte:donnees.response || "",
-            role:"bot"
-        });
-
+        discussion.push({texte:donnees.response || "",role:"bot"});
         sauvegarder();
 
     }catch(e){
         attente.textContent = e.message || "Impossible d'analyser la photo.";
     }finally{
+        retirerPhoto();
         bouton.disabled=false;
-        champ.value="";
         chat.scrollTop=chat.scrollHeight;
     }
 }
