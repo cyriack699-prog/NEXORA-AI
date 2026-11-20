@@ -4,10 +4,7 @@ from io import BytesIO
 from pypdf import PdfReader
 from openpyxl import load_workbook
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, jsonify
 
 from cerveau import repondre
 from image_generator import generer_image
@@ -22,108 +19,6 @@ if not os.path.exists(".secret_key"):
 
 with open(".secret_key") as f:
     app.config["SECRET_KEY"] = f.read().strip()
-
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///nexora.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = "connexion"
-
-
-class Utilisateur(UserMixin, db.Model):
-    __tablename__ = "utilisateur"
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    mot_de_passe = db.Column(db.String(256), nullable=False)
-    prenom = db.Column(db.String(80), nullable=True)
-    nom = db.Column(db.String(80), nullable=True)
-
-
-@login_manager.user_loader
-def charger_utilisateur(user_id):
-    try:
-        return db.session.get(Utilisateur, int(user_id))
-    except (ValueError, TypeError):
-        return None
-
-
-@login_manager.unauthorized_handler
-def acces_non_autorise():
-    if request.path in ("/chat", "/creer-video"):
-        return jsonify({"response": "Connecte-toi pour utiliser NEXORA."}), 401
-    return redirect(url_for("connexion"))
-
-
-with app.app_context():
-    db.create_all()
-
-
-@app.route("/connexion")
-def connexion():
-    if current_user.is_authenticated:
-        return redirect(url_for("application"))
-    return render_template("connexion.html")
-
-
-@app.route("/connexion-classique", methods=["GET", "POST"])
-def connexion_classique():
-    if request.method == "GET":
-        return redirect(url_for("connexion"))
-
-    email = request.form.get("email", "").strip().lower()
-    mot_de_passe = request.form.get("password", "")
-    utilisateur = Utilisateur.query.filter_by(email=email).first()
-
-    if utilisateur and check_password_hash(utilisateur.mot_de_passe, mot_de_passe):
-        login_user(utilisateur)
-        return redirect(url_for("application"))
-
-    flash("Email ou mot de passe incorrect.")
-    return redirect(url_for("connexion"))
-
-
-@app.route("/inscription", methods=["GET", "POST"])
-def inscription():
-    if current_user.is_authenticated:
-        return redirect(url_for("application"))
-
-    if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        mot_de_passe = request.form.get("password", "")
-
-        if not email or "@" not in email or "." not in email:
-            flash("Entre une adresse email valide.")
-            return redirect(url_for("inscription"))
-
-        if len(mot_de_passe) < 8:
-            flash("Le mot de passe doit contenir au moins 8 caractères.")
-            return redirect(url_for("inscription"))
-
-        if Utilisateur.query.filter_by(email=email).first():
-            flash("Cette adresse email possède déjà un compte.")
-            return redirect(url_for("inscription"))
-
-        utilisateur = Utilisateur(
-            email=email,
-            mot_de_passe=generate_password_hash(mot_de_passe)
-        )
-        db.session.add(utilisateur)
-        db.session.commit()
-        login_user(utilisateur)
-        return redirect(url_for("application"))
-
-    return render_template("inscription.html")
-
-
-@app.route("/deconnexion")
-@login_required
-def deconnexion():
-    logout_user()
-    return redirect(url_for("connexion"))
-
-
-
 
 def demande_image(message):
     import unicodedata
@@ -187,19 +82,15 @@ def demande_image(message):
 
 @app.route("/")
 def accueil():
-    if current_user.is_authenticated:
-        return redirect(url_for("application"))
-    return redirect(url_for("connexion"))
+    return render_template("index.html")
 
 
 @app.route("/application")
-@login_required
 def application():
     return render_template("index.html")
 
 
 @app.route("/chat", methods=["POST"])
-@login_required
 def chat():
     try:
         photo = request.files.get("photo")
@@ -367,7 +258,6 @@ def chat():
 
 
 @app.route("/creer-video", methods=["POST"])
-@login_required
 def creer_video():
     data = request.get_json(silent=True) or {}
 
@@ -392,7 +282,6 @@ def creer_video():
     return jsonify(resultat)
 
 @app.route("/nouveau")
-@login_required
 def nouveau():
     return render_template("nexora.html")
 

@@ -1,7 +1,5 @@
 flask
 gunicorn
-flask-login
-flask-sqlalchemy
 pypdf
 openpyxl
 requests
