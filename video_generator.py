@@ -1,4 +1,5 @@
 import uuid
+import json
 from pathlib import Path
 from urllib.parse import urljoin, quote
 
@@ -25,54 +26,91 @@ def generer_video(prompt, duree=5, format_video="paysage"):
         else (512, 704)
     )
 
-    donnees = {
-        "data": [
-            prompt,
-            "worst quality, inconsistent motion, blurry, jittery, distorted",
-            None,
-            None,
-            hauteur,
-            largeur,
-            "text-to-video",
-            duree,
-            9,
-            42,
-            True,
-            3.0,
-            True
-        ]
-    }
+    donnees = [
+        prompt,
+        "worst quality, inconsistent motion, blurry, jittery, distorted",
+        None,
+        None,
+        hauteur,
+        largeur,
+        "text-to-video",
+        duree,
+        9,
+        42,
+        True,
+        3.0,
+        True
+    ]
 
     try:
         with requests.Session() as session:
+            # 1. Envoyer la demande dans la file d'attente Gradio
             reponse = session.post(
-                f"{API_URL}/gradio_api/run/text_to_video",
-                json=donnees,
+                f"{API_URL}/gradio_api/call/text_to_video",
+                json={"data": donnees},
+                timeout=(30, 60)
+            )
+            reponse.raise_for_status()
+
+            evenement = reponse.json().get("event_id")
+
+            if not evenement:
+                return {"error": "LTX n'a pas fourni d'identifiant de génération."}
+
+            # 2. Attendre le résultat de la génération
+            flux = session.get(
+                f"{API_URL}/gradio_api/call/text_to_video/{evenement}",
+                stream=True,
                 timeout=(30, 900)
             )
+            flux.raise_for_status()
 
-            if not reponse.ok:
-                return {
-                    "error": f"Erreur API LTX ({reponse.status_code}) : {reponse.text[:500]}"
-                }
+            resultat = None
+            type_evenement = None
 
-            resultat = reponse.json()
+            for ligne in flux.iter_lines(decode_unicode=True):
+                if not ligne:
+                    continue
 
-            if resultat.get("error"):
+                ligne = ligne.strip()
+
+                if ligne.startswith("event:"):
+                    type_evenement = ligne[6:].strip()
+
+                elif ligne.startswith("data:"):
+                    contenu = ligne[5:].strip()
+
+                    if contenu == "[DONE]":
+                        break
+
+                    try:
+                        resultat = json.loads(contenu)
+                    except json.JSONDecodeError:
+                        continue
+
+                    if type_evenement == "error":
+                        return {"error": f"Erreur LTX : {resultat}"}
+
+                    if type_evenement == "complete":
+                        break
+
+            flux.close()
+
+            if resultat is None:
+                return {"error": "LTX n'a retourné aucun résultat."}
+
+            if isinstance(resultat, dict) and resultat.get("error"):
                 return {"error": f"Erreur LTX : {resultat['error']}"}
 
-            sortie = resultat.get("data", [])
-
-            if not sortie and "output" in resultat:
-                sortie = [resultat["output"]]
+            sortie = resultat.get("data", []) if isinstance(resultat, dict) else resultat
 
             if isinstance(sortie, list) and sortie:
                 sortie = sortie[0]
 
             if not isinstance(sortie, dict):
-                return {"error": "Réponse vidéo LTX inattendue."}
+                return {"error": "Format de réponse vidéo inattendu."}
 
-            video_data = sortie.get("video")
+            video_data = sortie.get("video", sortie)
 
             if not isinstance(video_data, dict):
                 return {"error": "LTX n'a retourné aucun fichier vidéo."}
@@ -83,13 +121,11 @@ def generer_video(prompt, duree=5, format_video="paysage"):
             if url:
                 url = urljoin(API_URL + "/", url)
             elif chemin:
-                url = (
-                    f"{API_URL}/gradio_api/file="
-                    f"{quote(chemin, safe='/')}"
-                )
+                url = f"{API_URL}/gradio_api/file={quote(chemin, safe='/')}"
             else:
                 return {"error": "Lien du fichier vidéo absent."}
 
+            # 3. Télécharger la vidéo
             telechargement = session.get(url, timeout=(30, 300))
             telechargement.raise_for_status()
 
