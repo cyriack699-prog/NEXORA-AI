@@ -1,4 +1,5 @@
 import os
+import logging
 import requests
 from dotenv import load_dotenv
 
@@ -362,4 +363,5 @@ RÈGLES D'ADAPTATION :
         return "La réponse reçue du service IA est invalide."
 
     except Exception:
+        logging.exception("Erreur inattendue dans repondre()")
         return "Une erreur inattendue est survenue."
