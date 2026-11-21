@@ -2887,7 +2887,8 @@ async function envoyerPhotoEnAttente(){
 
     document.getElementById("welcome")?.remove();
     discussion.push({texte:"📷 "+fichier.name+"\n"+texte,role:"user"});
-    afficherMessage("📷 "+fichier.name+"\n"+texte,"user");
+    const imageMessage = URL.createObjectURL(fichier);
+    afficherMessage("📷 "+fichier.name+"\n"+texte,"user",imageMessage);
 
     input.value="";
     input.style.height="auto";
