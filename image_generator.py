@@ -164,12 +164,12 @@ def generer_image(prompt):
     prompt = ameliorer_prompt(prompt.strip())
 
     try:
-        return generer_pollinations(prompt)
-    except Exception as erreur_polli:
+        return generer_cloudflare(prompt)
+    except Exception as erreur_cloud:
         try:
-            return generer_cloudflare(prompt)
-        except Exception as erreur_cloud:
+            return generer_pollinations(prompt)
+        except Exception as erreur_polli:
             return (
-                "Erreur Pollinations : " + str(erreur_polli)[:250]
-                + " | Secours Cloudflare : " + str(erreur_cloud)[:250]
+                "Erreur FLUX.2 Dev : " + str(erreur_cloud)[:250]
+                + " | Secours Pollinations : " + str(erreur_polli)[:250]
             )
