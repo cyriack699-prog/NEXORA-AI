@@ -1,15 +1,18 @@
 import os
 import secrets
+import zipfile
 from io import BytesIO
+from pathlib import Path
 from pypdf import PdfReader
 from openpyxl import load_workbook
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 
 from cerveau import repondre
 from image_generator import generer_image
 from vision import analyser_photo
 from video_generator import generer_video
+from developer import generer_projet, PROJECTS_DIR
 
 app = Flask(__name__)
 
@@ -35,50 +38,65 @@ def demande_image(message):
     texte = re.sub(r"[^a-z0-9 ]", " ", texte)
     texte = re.sub(r"\s+", " ", texte).strip()
 
-    mots = set(texte.split())
-
-    actions = {
-        "genere", "generer", "cree", "creer",
-        "dessine", "dessiner", "imagine",
-        "fabrique", "produis", "produire",
-        "realise", "concois"
-    }
-
-    objets = {
-        "image", "images", "photo", "photos",
-        "photographie", "illustration", "dessin",
-        "logo", "avatar", "portrait", "affiche",
-        "fond", "ecran", "wallpaper", "3d",
-        "render", "visuel", "banniere"
-    }
-
-    if mots & actions:
-        if mots & objets:
-            return True
-
-        if "dessine" in mots or "dessiner" in mots:
-            return True
-
-        if re.search(r"\b(genere|generer|cree|creer|imagine|fabrique)\b", texte):
-            return True
-
-    expressions_visuelles = [
-        r"\bje veux voir\b",
-        r"\bmontre moi\b",
-        r"\bfais voir\b",
-        r"\bfais moi une photo\b",
-        r"\bfais moi une image\b",
-        r"\bfais moi un dessin\b",
-        r"\bje veux une image\b",
-        r"\bje veux une photo\b",
-        r"\btransforme moi en\b"
+    visuels = [
+        r"\bimage(s)?\b",
+        r"\bphoto(s)?\b",
+        r"\bphotographie(s)?\b",
+        r"\blogos?\b",
+        r"\bdessin(s)?\b",
+        r"\billustration(s)?\b",
+        r"\bportrait(s)?\b",
+        r"\bavatar(s)?\b",
+        r"\baffiche(s)?\b",
+        r"\bbanniere(s)?\b",
+        r"\bwallpaper(s)?\b",
+        r"\bfond d ecran\b",
+        r"\brendu 3d\b",
     ]
 
-    if any(re.search(expression, texte) for expression in expressions_visuelles):
+    action_dessin = [
+        r"\bdessine(r)?\b",
+        r"\bpeins?\b",
+        r"\billustre(r)?\b",
+        r"\bgenere(r)?\b",
+        r"\bcre(e|er)\b",
+        r"\bfabrique(r)?\b",
+        r"\brealise(r)?\b",
+        r"\bproduis?\b",
+    ]
+
+    developpement = [
+        r"\bapplication(s)?\b",
+        r"\bapp(s)?\b",
+        r"\bsite(s)? web\b",
+        r"\bsite(s)? internet\b",
+        r"\bpage(s)? web\b",
+        r"\bprogramme(s)?\b",
+        r"\bprogrammer\b",
+        r"\bprogrammation\b",
+        r"\bcode\b",
+        r"\bcoder\b",
+        r"\blogiciel(s)?\b",
+        r"\bplateforme(s)?\b",
+        r"\bbot(s)?\b",
+    ]
+
+    contient_visuel = any(re.search(p, texte) for p in visuels)
+    contient_action = any(re.search(p, texte) for p in action_dessin)
+    contient_developpement = any(
+        re.search(p, texte) for p in developpement
+    )
+
+    if contient_visuel and contient_action:
+        return True
+
+    if contient_developpement:
+        return False
+
+    if re.search(r"\bdessine(r)?\b|\bpeins?\b|\billustre(r)?\b", texte):
         return True
 
     return False
-
 
 @app.route("/")
 def accueil():
@@ -255,6 +273,134 @@ def chat():
 
 
 
+
+
+@app.route("/developer", methods=["POST"])
+def creer_projet():
+    data = request.get_json(silent=True) or {}
+
+    message = data.get("message", "")
+
+    if not isinstance(message, str) or not message.strip():
+        return jsonify({
+            "success": False,
+            "error": "Décris le projet que tu souhaites créer."
+        }), 400
+
+    if len(message) > 4000:
+        return jsonify({
+            "success": False,
+            "error": "La description ne doit pas dépasser 4000 caractères."
+        }), 400
+
+    try:
+        resultat = generer_projet(message.strip())
+
+        if not resultat.get("success"):
+            return jsonify(resultat), 502
+
+        return jsonify(resultat)
+
+    except Exception:
+        app.logger.exception("Erreur lors de la création du projet")
+        return jsonify({
+            "success": False,
+            "error": "Impossible de créer le projet pour le moment."
+        }), 500
+
+
+@app.route("/developer/download/<project_id>", methods=["GET"])
+def telecharger_projet(project_id):
+
+    if (
+        len(project_id) != 12
+        or any(c not in "0123456789abcdef" for c in project_id)
+    ):
+        return jsonify({
+            "success": False,
+            "error": "Identifiant de projet invalide."
+        }), 400
+
+    try:
+        racine = PROJECTS_DIR.resolve()
+        dossier = (racine / project_id).resolve(strict=True)
+
+        if dossier.parent != racine or not dossier.is_dir():
+            return jsonify({
+                "success": False,
+                "error": "Projet introuvable."
+            }), 404
+
+        archive = BytesIO()
+        nombre_fichiers = 0
+        taille_totale = 0
+
+        with zipfile.ZipFile(
+            archive,
+            "w",
+            compression=zipfile.ZIP_DEFLATED
+        ) as zipf:
+
+            for chemin in dossier.rglob("*"):
+
+                if chemin.is_symlink():
+                    return jsonify({
+                        "success": False,
+                        "error": "Lien symbolique interdit."
+                    }), 400
+
+                if not chemin.is_file():
+                    continue
+
+                destination = chemin.resolve(strict=True)
+
+                if not destination.is_relative_to(dossier):
+                    return jsonify({
+                        "success": False,
+                        "error": "Chemin de fichier interdit."
+                    }), 400
+
+                nombre_fichiers += 1
+                taille_totale += destination.stat().st_size
+
+                if nombre_fichiers > 30 or taille_totale > 1000000:
+                    return jsonify({
+                        "success": False,
+                        "error": "Limites du projet dépassées."
+                    }), 400
+
+                nom_dans_zip = chemin.relative_to(dossier).as_posix()
+
+                zipf.write(destination, nom_dans_zip)
+
+        if nombre_fichiers == 0:
+            return jsonify({
+                "success": False,
+                "error": "Ce projet ne contient aucun fichier."
+            }), 404
+
+        archive.seek(0)
+
+        return send_file(
+            archive,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=f"NEXORA-{project_id}.zip"
+        )
+
+    except FileNotFoundError:
+        return jsonify({
+            "success": False,
+            "error": "Projet introuvable."
+        }), 404
+
+    except Exception:
+        app.logger.exception("Erreur de création de l'archive ZIP")
+
+        return jsonify({
+            "success": False,
+            "error": "Impossible de préparer le téléchargement."
+        }), 500
 
 
 @app.route("/creer-video", methods=["POST"])

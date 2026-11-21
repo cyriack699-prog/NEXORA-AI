@@ -2119,7 +2119,7 @@ hidden onchange="envoyerFichier(this)">
 <button type="button" onclick="document.getElementById('file-input').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg> PDF / Excel</button>
 <div class="menu-separator">OUTILS NEXORA</div>
 <button type="button" onclick="fermerMenuEtProposer('Explique-moi quelque chose de nouveau')">✧　Apprendre quelque chose</button>
-<button type="button" onclick="fermerMenuEtProposer('Aide-moi à créer une application')">▣　Créer une application</button>
+<button type="button" onclick="activerModeDeveloppeur()">💻　Mode développeur</button>
 <button type="button" onclick="fermerMenuEtProposer('Donne-moi une idée de projet')">✳　Trouver une idée</button>
 <button type="button" onclick="fermerMenuEtProposer('Génère une image futuriste')">▧　Générer une image</button>
 <button type="button" onclick="ouvrirCreateurVideo()">🎬　Créer une vidéo</button>
@@ -2321,6 +2321,23 @@ try {
     historique = [];
 }
 let discussion=[];
+
+// Etat du mode developpeur
+let modeDeveloppeur = false;
+
+function activerModeDeveloppeur(){
+    document.getElementById("menu-ajout").classList.remove("ouvert");
+
+    modeDeveloppeur = true;
+    input.placeholder = "Décris le projet que tu souhaites créer...";
+
+    afficherMessage(
+        "💻 **Mode développeur activé !**\\n\\nDécris le site web, l'application ou le programme que tu souhaites créer.",
+        "bot"
+    );
+
+    input.focus();
+}
 
 let parametresNexora = {
     longueur: "normale",
@@ -2666,68 +2683,176 @@ async function afficherTexteProgressif(element, texte){
 async function envoyer(){
 const texte=input.value.trim();
 const bouton=document.getElementById("bouton");
+
 if(bouton.disabled)return;
+
 if(photoEnAttente){
     await envoyerPhotoEnAttente();
     return;
 }
+
 if(!texte)return;
 
 document.getElementById("welcome")?.remove();
 
 discussion.push({texte,role:"user"});
 afficherMessage(texte,"user");
+
 input.value="";
 input.style.height="auto";
 
-const attente=afficherAttente("NEXORA réfléchit");
+const attente=afficherAttente(
+    modeDeveloppeur ? "NEXORA prépare ton projet..." : "NEXORA réfléchit"
+);
+
 bouton.disabled=true;
 
 try{
-const resultat=await fetch("/chat",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-message:texte,
-historique:parametresNexora.memoire ? discussion.slice(0,-1).slice(-20) : [],
-parametres:parametresNexora
-})
-});
 
-if(!resultat.ok)throw new Error("Réponse serveur : "+resultat.status);
+if(modeDeveloppeur){
 
-const donnees=await resultat.json();
-await afficherTexteProgressif(attente, donnees.response||"Aucune réponse reçue.");
+    const resultat=await fetch("/developer",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({message:texte})
+    });
 
-if(donnees.image){
-const img=document.createElement("img");
-img.src=donnees.image;
-img.className="image-generee";
-img.alt="Image générée par NEXORA AI";
-img.style.cursor="zoom-in";
-img.onclick=()=>window.open(img.src, "_blank");
+    const donnees=await resultat.json();
 
-const telecharger=document.createElement("a");
-telecharger.href=donnees.image;
-telecharger.download="NEXORA-image.jpg";
-telecharger.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></svg><span>Télécharger</span>';
-telecharger.className="download-image";
+    if(!resultat.ok || !donnees.success){
+        throw new Error(donnees.error || "Impossible de créer le projet.");
+    }
 
-attente.appendChild(img);
-attente.appendChild(telecharger);
+    attente.replaceChildren();
+
+    const titre=document.createElement("h3");
+    titre.textContent="💻 "+(donnees.name || "Projet créé");
+    attente.appendChild(titre);
+
+    const description=document.createElement("p");
+    description.textContent=donnees.description || "Projet généré par NEXORA AI.";
+    attente.appendChild(description);
+
+    const identifiant=document.createElement("p");
+    identifiant.textContent="Identifiant : "+donnees.project_id;
+    attente.appendChild(identifiant);
+
+    const titreFichiers=document.createElement("h4");
+    titreFichiers.textContent="📁 Fichiers du projet";
+    attente.appendChild(titreFichiers);
+
+    if(Array.isArray(donnees.files)){
+        donnees.files.forEach(fichier => {
+
+            const details=document.createElement("details");
+
+            const resume=document.createElement("summary");
+            resume.textContent="📄 "+fichier.path;
+            details.appendChild(resume);
+
+            const pre=document.createElement("pre");
+            const contenu=document.createElement("code");
+
+            contenu.textContent=fichier.content || "";
+
+            pre.appendChild(contenu);
+            details.appendChild(pre);
+            attente.appendChild(details);
+        });
+    }
+
+    const boutonZip=document.createElement("a");
+    boutonZip.textContent="📦 Télécharger mon projet";
+    boutonZip.className="download-image";
+    boutonZip.href="/developer/download/"+encodeURIComponent(donnees.project_id);
+    boutonZip.download="NEXORA-"+donnees.project_id+".zip";
+    boutonZip.style.display="inline-flex";
+    boutonZip.style.alignItems="center";
+    boutonZip.style.gap="10px";
+    boutonZip.style.marginTop="15px";
+    boutonZip.style.padding="12px 18px";
+    boutonZip.style.borderRadius="12px";
+    boutonZip.style.textDecoration="none";
+    boutonZip.style.cursor="pointer";
+
+    attente.appendChild(boutonZip);
+
+    const messageBot="Projet créé : "+(donnees.name || "Nouveau projet")+
+        ". "+(donnees.files?.length || 0)+" fichier(s) généré(s).";
+
+    discussion.push({
+        texte:messageBot,
+        role:"bot"
+    });
+
+    sauvegarder();
+
+}else{
+
+    const resultat=await fetch("/chat",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            message:texte,
+            historique:parametresNexora.memoire ? discussion.slice(0,-1).slice(-20) : [],
+            parametres:parametresNexora
+        })
+    });
+
+    if(!resultat.ok){
+        throw new Error("Réponse serveur : "+resultat.status);
+    }
+
+    const donnees=await resultat.json();
+
+    await afficherTexteProgressif(
+        attente,
+        donnees.response || "Aucune réponse reçue."
+    );
+
+    if(donnees.image){
+        const img=document.createElement("img");
+        img.src=donnees.image;
+        img.className="image-generee";
+        img.alt="Image générée par NEXORA AI";
+        img.style.cursor="zoom-in";
+        img.onclick=()=>window.open(img.src,"_blank");
+
+        const telecharger=document.createElement("a");
+        telecharger.href=donnees.image;
+        telecharger.download="NEXORA-image.jpg";
+        telecharger.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></svg><span>Télécharger</span>';
+        telecharger.className="download-image";
+
+        attente.appendChild(img);
+        attente.appendChild(telecharger);
+    }
+
+    discussion.push({
+        texte:donnees.response || "",
+        role:"bot",
+        image:donnees.image || null
+    });
+
+    if(modeVocalActif && donnees.response){
+        lireReponseVocale(donnees.response);
+    }
+
+    sauvegarder();
 }
-
-discussion.push({texte:donnees.response||"",role:"bot",image:donnees.image||null});
-if(modeVocalActif && donnees.response) lireReponseVocale(donnees.response);
-sauvegarder();
 
 }catch(e){
-attente.textContent="Erreur de communication. Vérifie que le serveur NEXORA est démarré.";
+
+    attente.textContent=e.message ||
+        "Erreur de communication avec NEXORA AI.";
+
+    console.error("Erreur NEXORA :",e);
+
 }
+
 bouton.disabled=false;
 chat.scrollTop=chat.scrollHeight;
 }
-
 
 
 /* ===== MODE VOCAL NEXORA AI ===== */
